@@ -174,21 +174,68 @@ eventsRouter.post('/:id/register', async (req: Request, res: Response) => {
       return;
     }
 
-    const { studentId, studentName, studentEmail, seatPass } = body;
+    const {
+      studentId,
+      studentName,
+      studentEmail,
+      studentPhone,
+      rollNumber,
+      department,
+      yearOfStudy,
+      collegeName,
+      additionalNotes,
+      seatPass
+    } = body;
 
-    if (!studentId || typeof studentId !== 'string' || studentId.trim().length === 0) {
+    const errors: string[] = [];
+
+    // Identification validation (Roll Number or Student ID)
+    const effectiveRoll = (rollNumber || studentId || '').toString().trim();
+    if (!effectiveRoll) {
+      errors.push('University Roll Number (or Student ID) is required');
+    }
+
+    // Name validation
+    if (studentName !== undefined && (typeof studentName !== 'string' || studentName.trim().length < 2)) {
+      errors.push('Full Name is required and must be at least 2 characters');
+    }
+
+    // Email format validation
+    if (studentEmail !== undefined && studentEmail !== '') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (typeof studentEmail !== 'string' || !emailRegex.test(studentEmail.trim())) {
+        errors.push('A valid email address is required (e.g. student@campus.edu)');
+      }
+    }
+
+    // Phone validation if supplied
+    if (studentPhone !== undefined && studentPhone !== '') {
+      const phoneDigits = String(studentPhone).replace(/\D/g, '');
+      if (phoneDigits.length < 7) {
+        errors.push('Phone number must contain at least 7 digits');
+      }
+    }
+
+    if (errors.length > 0) {
       res.status(400).json({
         error: 'Validation failed',
-        message: 'studentId is required and must be a non-empty string'
+        details: errors,
+        message: errors.join('; ')
       });
       return;
     }
 
     const result = await storage.registerStudent(id, {
-      studentId,
-      studentName,
-      studentEmail,
-      seatPass
+      studentId: (studentId || effectiveRoll).trim(),
+      studentName: studentName ? String(studentName).trim() : undefined,
+      studentEmail: studentEmail ? String(studentEmail).trim() : undefined,
+      studentPhone: studentPhone ? String(studentPhone).trim() : undefined,
+      rollNumber: effectiveRoll,
+      department: department ? String(department).trim() : undefined,
+      yearOfStudy: yearOfStudy ? String(yearOfStudy).trim() : undefined,
+      collegeName: collegeName ? String(collegeName).trim() : undefined,
+      additionalNotes: additionalNotes ? String(additionalNotes).trim() : undefined,
+      seatPass: seatPass ? String(seatPass).trim() : undefined
     });
 
     if (!result.success) {

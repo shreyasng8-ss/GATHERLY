@@ -6,7 +6,9 @@
     "studentName": "Alex Chen",
     "studentEmail": "alex.chen@campus.edu",
     "registeredAt": "2024-10-10T12:00:00.000Z",
-    "seatPass": "Zone B-14"
+    "seatPass": "Zone B-14",
+    "ticketId": "TKT-EVT-1-MO1TZA",
+    "status": "Confirmed"
   },
   {
     "id": "reg-seed-2",
@@ -15,7 +17,9 @@
     "studentName": "Sarah Jenkins",
     "studentEmail": "sarah.j@campus.edu",
     "registeredAt": "2024-10-11T14:15:00.000Z",
-    "seatPass": "Zone B-15"
+    "seatPass": "Zone B-15",
+    "ticketId": "TKT-EVT-1-TDA5QE",
+    "status": "Confirmed"
   },
   {
     "id": "reg-seed-3",
@@ -24,7 +28,9 @@
     "studentName": "Marcus Thorne",
     "studentEmail": "marcus.t@campus.edu",
     "registeredAt": "2024-10-11T16:45:00.000Z",
-    "seatPass": "Zone B-16"
+    "seatPass": "Zone B-16",
+    "ticketId": "TKT-EVT-1-ZNLUE6",
+    "status": "Confirmed"
   },
   {
     "id": "reg-seed-4",
@@ -33,7 +39,9 @@
     "studentName": "Alex Chen",
     "studentEmail": "alex.chen@campus.edu",
     "registeredAt": "2024-10-12T09:30:00.000Z",
-    "seatPass": "Zone A-08"
+    "seatPass": "Zone A-08",
+    "ticketId": "TKT-EVT-2-IBPV9K",
+    "status": "Confirmed"
   },
   {
     "id": "reg-seed-5",
@@ -42,7 +50,9 @@
     "studentName": "Leo Kim",
     "studentEmail": "leo.kim@campus.edu",
     "registeredAt": "2024-10-12T11:00:00.000Z",
-    "seatPass": "Zone A-09"
+    "seatPass": "Zone A-09",
+    "ticketId": "TKT-EVT-2-TJ721F",
+    "status": "Confirmed"
   },
   {
     "id": "reg-1791901717887-c8qa",
@@ -51,7 +61,9 @@
     "studentName": "Alex Chen",
     "studentEmail": "alex.chen@campus.edu",
     "registeredAt": "2026-10-13T14:28:37.887Z",
-    "seatPass": "Front Row A-01"
+    "seatPass": "Front Row A-01",
+    "ticketId": "TKT-EVT-1791901717877-YHEU-E0TOK1",
+    "status": "Confirmed"
   },
   {
     "id": "reg-1791901717896-nkij",
@@ -60,6 +72,8 @@
     "studentName": "Elena Rostova",
     "studentEmail": "elena.r@campus.edu",
     "registeredAt": "2026-10-13T14:28:37.896Z",
-    "seatPass": "General Admission"
+    "seatPass": "General Admission",
+    "ticketId": "TKT-EVT-1791901717877-YHEU-FQUWKE",
+    "status": "Confirmed"
   }
 ]

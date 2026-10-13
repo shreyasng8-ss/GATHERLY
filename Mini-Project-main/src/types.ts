@@ -23,6 +23,8 @@ export interface EventItem {
   eligibleYears?: string[];
   seatPass?: string;
   isRegistered?: boolean;
+  registrationId?: string;
+  ticketId?: string;
   registrationLink?: string;
   organizer?: string;
 }
@@ -43,6 +45,7 @@ export interface TaskItem {
   assignee: string;
   assigneeAvatar?: string;
   completed: boolean;
+  createdAt?: string;
 }
 
 export interface NotificationItem {
@@ -77,8 +80,55 @@ export interface RegistrationRecord {
   id: string;
   eventId: string;
   studentId: string;
+  studentName: string;
+  studentEmail: string;
+  studentPhone?: string;
+  rollNumber?: string;
+  department?: string;
+  yearOfStudy?: string;
+  collegeName?: string;
+  ticketId: string;
+  seatPass?: string;
+  registeredAt: string;
+  status?: 'Confirmed' | 'Attended' | 'Cancelled';
+}
+
+export interface EventRegistrationPayload {
+  studentName: string;
+  studentEmail: string;
+  studentPhone: string;
+  rollNumber: string;
+  department: string;
+  yearOfStudy: string;
+  collegeName?: string;
+  additionalNotes?: string;
+  studentId?: string;
+  seatPass?: string;
+}
+
+export interface TicketVerificationResponse {
+  valid: boolean;
+  ticketId: string;
+  registrationId?: string;
+  studentId?: string;
   studentName?: string;
   studentEmail?: string;
-  registeredAt: string;
+  rollNumber?: string;
+  department?: string;
+  yearOfStudy?: string;
   seatPass?: string;
+  registeredAt?: string;
+  status?: string;
+  event?: {
+    id: string;
+    title: string;
+    category: string;
+    date: string;
+    time: string;
+    venue: string;
+    organizer?: string;
+  };
+  error?: string;
+  message?: string;
+  verifiedAt: string;
 }

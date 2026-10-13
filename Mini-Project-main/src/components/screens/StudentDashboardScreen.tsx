@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScreenId, EventItem, StudentProfile, NotificationItem } from '../../types';
 import { GatherlyLogo } from '../GatherlyLogo';
 import {
@@ -16,12 +16,14 @@ import {
   Radio,
   CheckCircle2,
   Ticket,
-  ChevronRight,
   ShieldCheck,
   Home,
   CalendarCheck,
   Compass,
   User,
+  Info,
+  Search,
+  Filter
 } from 'lucide-react';
 
 interface StudentDashboardProps {
@@ -30,6 +32,8 @@ interface StudentDashboardProps {
   notifications: NotificationItem[];
   onNavigate: (screen: ScreenId) => void;
   onOpenTicket: (event: EventItem) => void;
+  onSelectEventDetails: (event: EventItem) => void;
+  onOpenRegistrationModal: (event: EventItem) => void;
   onMarkAllRead: () => void;
   onShowToast: (message: string) => void;
   onRegisterEvent?: (eventId: string) => void;
@@ -42,13 +46,35 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
   notifications,
   onNavigate,
   onOpenTicket,
+  onSelectEventDetails,
+  onOpenRegistrationModal,
   onMarkAllRead,
   onShowToast,
-  onRegisterEvent,
   registeringEventId,
 }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
   const registeredEvents = events.filter((e) => e.isRegistered);
   const unregisteredEvents = events.filter((e) => !e.isRegistered);
+
+  // Filtered discover events
+  const filteredEvents = unregisteredEvents.filter((e) => {
+    const matchesCategory =
+      selectedCategory === 'All' ||
+      (e.category && e.category.toLowerCase() === selectedCategory.toLowerCase()) ||
+      (e.type && e.type.toLowerCase() === selectedCategory.toLowerCase());
+
+    const matchesSearch =
+      !searchQuery.trim() ||
+      e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (e.description && e.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (e.venue && e.venue.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    return matchesCategory && matchesSearch;
+  });
+
+  const categories = ['All', 'Tech Workshop', 'Hackathon', 'Career', 'Academic'];
 
   return (
     <div className="min-h-full flex flex-col bg-[#0a0c10] text-[#dfe2ef]">
@@ -151,12 +177,15 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
                   Upcoming Registered
                 </span>
                 <span className="text-xl font-extrabold text-white">
-                  3 <span className="text-xs font-normal text-zinc-400">passes</span>
+                  {registeredEvents.length}{' '}
+                  <span className="text-xs font-normal text-zinc-400">
+                    {registeredEvents.length === 1 ? 'pass' : 'passes'}
+                  </span>
                 </span>
               </div>
             </div>
             <span className="text-xs text-[#ffb68b] font-mono bg-[#ff7a00]/10 px-2 py-0.5 rounded-md border border-[#ff7a00]/20">
-              +1 this wk
+              Active Sync
             </span>
           </div>
 
@@ -239,13 +268,15 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
           </div>
         </div>
 
-        {/* My Registered Events Section */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
+        {/* ------------------------------------------------------------------ */}
+        {/* MY REGISTRATIONS SECTION (Feature Requirement 5)                  */}
+        {/* ------------------------------------------------------------------ */}
+        <section id="my-registrations" className="space-y-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Ticket className="w-4 h-4 text-[#ff7a00]" />
               <h3 className="text-base font-bold text-white tracking-tight">
-                My Registered Events ({registeredEvents.length})
+                My Registrations ({registeredEvents.length})
               </h3>
             </div>
             {registeredEvents.length > 0 && (
@@ -259,106 +290,174 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
             {registeredEvents.length === 0 ? (
               <div className="p-6 rounded-2xl bg-[#141824] border border-white/5 text-center space-y-2">
                 <Ticket className="w-8 h-8 text-zinc-500 mx-auto" />
-                <p className="text-sm font-semibold text-zinc-300">No active registrations</p>
-                <p className="text-xs text-zinc-500">Explore open campus events below to RSVP and generate your dynamic fast pass.</p>
+                <p className="text-sm font-semibold text-zinc-300">No active registrations yet</p>
+                <p className="text-xs text-zinc-500">
+                  Select an upcoming campus event below to fill your student registration form and receive your scannable gate pass.
+                </p>
               </div>
             ) : (
-              registeredEvents.map((evt, idx) => (
-                <div
-                  key={evt.id}
-                  className={`rounded-2xl bg-[#141824] overflow-hidden ${
-                    idx === 0
-                      ? 'border border-[#ff7a00]/30 shadow-[0_0_20px_rgba(255,122,0,0.15)]'
-                      : 'border border-white/5'
-                  }`}
-                >
-                  <div className="relative h-40 w-full overflow-hidden">
-                    <img
-                      src={evt.image || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80'}
-                      alt={evt.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#141824] via-black/30 to-black/30" />
+              registeredEvents.map((evt, idx) => {
+                const regCode = evt.registrationId || `REG-${evt.id.toUpperCase()}`;
+                const passCode = evt.ticketId || `TKT-${evt.id.toUpperCase()}`;
 
-                    <div className="absolute top-3 left-3 flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#ff7a00] text-black uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_#ff7a00]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
-                        {evt.status === 'Active' ? 'ACTIVE PASS' : 'CONFIRMED'}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-black/70 text-white backdrop-blur-md border border-white/10">
-                        Fast Pass Ready
-                      </span>
+                return (
+                  <div
+                    key={evt.id}
+                    className={`rounded-2xl bg-[#141824] overflow-hidden ${
+                      idx === 0
+                        ? 'border border-[#ff7a00]/30 shadow-[0_0_20px_rgba(255,122,0,0.15)]'
+                        : 'border border-white/5'
+                    }`}
+                  >
+                    {/* Event Banner */}
+                    <div
+                      onClick={() => onSelectEventDetails(evt)}
+                      className="relative h-40 w-full overflow-hidden cursor-pointer group"
+                    >
+                      <img
+                        src={
+                          evt.image ||
+                          'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80'
+                        }
+                        alt={evt.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#141824] via-black/30 to-black/30" />
+
+                      <div className="absolute top-3 left-3 flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#ff7a00] text-black uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_#ff7a00]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
+                          CONFIRMED
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-black/70 text-white backdrop-blur-md border border-white/10">
+                          Fast Pass Ready
+                        </span>
+                      </div>
+
+                      <div className="absolute top-3 right-3 text-[#ff7a00]">
+                        <Sparkles className="w-5 h-5 drop-shadow-[0_0_8px_#ff7a00]" />
+                      </div>
                     </div>
 
-                    <div className="absolute top-3 right-3 text-[#ff7a00]">
-                      <Sparkles className="w-5 h-5 drop-shadow-[0_0_8px_#ff7a00]" />
+                    {/* Registration Card Body */}
+                    <div className="p-4 space-y-3">
+                      <div>
+                        <span className="text-[11px] font-mono font-bold tracking-wider text-[#ff9e00] uppercase block">
+                          {evt.category || evt.type || 'CAMPUS EVENT'}
+                        </span>
+                        <h4
+                          onClick={() => onSelectEventDetails(evt)}
+                          className="text-base font-bold text-white leading-snug cursor-pointer hover:text-[#ff9e00] transition-colors"
+                        >
+                          {evt.title}
+                        </h4>
+                      </div>
+
+                      {/* Event Date & Venue */}
+                      <div className="space-y-1 text-xs text-zinc-300 bg-[#0e121a] p-3 rounded-xl border border-white/5">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-[#ff7a00]" />
+                          <span>{evt.date} • {evt.time}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-[#ff7a00]" />
+                          <span>{evt.venue}</span>
+                        </div>
+                      </div>
+
+                      {/* Registration ID & Status Tags */}
+                      <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
+                        <div className="p-2 rounded-lg bg-[#181f2f] border border-white/5">
+                          <span className="text-zinc-500 block text-[10px]">REGISTRATION ID</span>
+                          <span className="text-zinc-200 font-bold truncate block">{regCode}</span>
+                        </div>
+                        <div className="p-2 rounded-lg bg-[#181f2f] border border-white/5">
+                          <span className="text-zinc-500 block text-[10px]">PASS CODE</span>
+                          <span className="text-[#ff9e00] font-bold truncate block">{passCode}</span>
+                        </div>
+                      </div>
+
+                      {/* Actions: View Ticket & View Details */}
+                      <div className="pt-1 grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => onOpenTicket(evt)}
+                          className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#ff9e00] text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_16px_rgba(255,122,0,0.4)] hover:brightness-110 transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                          <span>View Ticket</span>
+                        </button>
+
+                        <button
+                          onClick={() => onSelectEventDetails(evt)}
+                          className="py-2.5 px-3 rounded-xl bg-[#1e2436] hover:bg-[#28324a] text-zinc-200 hover:text-white font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-white/10 active:scale-95"
+                        >
+                          <Info className="w-3.5 h-3.5 text-[#ff7a00]" />
+                          <span>View Details</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="p-4 space-y-2">
-                    <span className="text-[11px] font-mono font-bold tracking-wider text-[#ff9e00] uppercase block">
-                      {evt.category || evt.type || 'CAMPUS EVENT'}
-                    </span>
-                    <h4 className="text-base font-bold text-white leading-snug">
-                      {evt.title}
-                    </h4>
-
-                    <div className="space-y-1 text-xs text-zinc-300">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-[#ff7a00]" />
-                        <span>{evt.date} • {evt.time}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-[#ff7a00]" />
-                        <span>{evt.venue}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-[11px]">
-                        <span className="text-[#ff9e00]">🎟️</span>
-                        <span>Seat Pass: <strong>{evt.seatPass || 'General Admission'}</strong></span>
-                      </div>
-                    </div>
-
-                    <div className="pt-3 grid grid-cols-2 gap-2 mt-2">
-                      <button
-                        onClick={() => onOpenTicket(evt)}
-                        className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#ff9e00] text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_16px_rgba(255,122,0,0.4)] hover:brightness-110 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                      >
-                        <QrCode className="w-3.5 h-3.5" />
-                        <span>View Ticket</span>
-                      </button>
-
-                      <button
-                        onClick={() => onOpenTicket(evt)}
-                        className="py-2.5 px-3 rounded-xl bg-[#1e2436] hover:bg-[#28324a] text-zinc-200 font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1"
-                      >
-                        <span>Details</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Discover & Register for Events Section */}
-        {unregisteredEvents.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Compass className="w-4 h-4 text-[#ff7a00]" />
-                <h3 className="text-base font-bold text-white tracking-tight">
-                  Discover Campus Events ({unregisteredEvents.length})
-                </h3>
-              </div>
-              <span className="text-xs text-zinc-400 font-mono">
-                Open for RSVP
-              </span>
+        {/* ------------------------------------------------------------------ */}
+        {/* DISCOVER CAMPUS EVENTS (Feature Requirement 1)                     */}
+        {/* ------------------------------------------------------------------ */}
+        <section className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Compass className="w-4 h-4 text-[#ff7a00]" />
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Discover Campus Events ({filteredEvents.length})
+              </h3>
+            </div>
+            <span className="text-xs text-zinc-400 font-mono">Open for RSVP</span>
+          </div>
+
+          {/* Search & Category Filter */}
+          <div className="space-y-2.5">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search events, workshops, hackathons..."
+                className="w-full pl-9 pr-3 py-2 bg-[#141824] border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#ff7a00]"
+              />
             </div>
 
-            <div className="space-y-4">
-              {unregisteredEvents.map((evt) => {
-                const isFull = evt.registeredCount >= evt.capacity;
+            {/* Category pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`text-[11px] font-medium px-3 py-1 rounded-full whitespace-nowrap transition-colors cursor-pointer ${
+                    selectedCategory === cat
+                      ? 'bg-[#ff7a00] text-black font-bold'
+                      : 'bg-[#181f2f] text-zinc-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Events List */}
+          <div className="space-y-4">
+            {filteredEvents.length === 0 ? (
+              <div className="p-6 rounded-2xl bg-[#141824] border border-white/5 text-center text-zinc-400 text-xs">
+                No events found matching your criteria.
+              </div>
+            ) : (
+              filteredEvents.map((evt) => {
+                const seatsLeft = Math.max(0, evt.capacity - (evt.registeredCount || 0));
+                const isFull = seatsLeft === 0;
                 const isRegistering = registeringEventId === evt.id;
 
                 return (
@@ -366,11 +465,18 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
                     key={evt.id}
                     className="rounded-2xl bg-[#141824] border border-white/5 overflow-hidden hover:border-[#ff7a00]/30 transition-all"
                   >
-                    <div className="relative h-36 w-full overflow-hidden">
+                    {/* Clickable Card Header */}
+                    <div
+                      onClick={() => onSelectEventDetails(evt)}
+                      className="relative h-36 w-full overflow-hidden cursor-pointer group"
+                    >
                       <img
-                        src={evt.image || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80'}
+                        src={
+                          evt.image ||
+                          'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80'
+                        }
                         alt={evt.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#141824] via-black/20 to-black/30" />
 
@@ -382,13 +488,16 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
 
                       <div className="absolute top-3 right-3">
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-black/80 text-white border border-white/10">
-                          {evt.status || 'Upcoming'}
+                          {isFull ? 'Sold Out' : `${seatsLeft} seats left`}
                         </span>
                       </div>
                     </div>
 
-                    <div className="p-4 space-y-2">
-                      <h4 className="text-base font-bold text-white leading-snug">
+                    <div className="p-4 space-y-2.5">
+                      <h4
+                        onClick={() => onSelectEventDetails(evt)}
+                        className="text-base font-bold text-white leading-snug cursor-pointer hover:text-[#ff9e00] transition-colors"
+                      >
                         {evt.title}
                       </h4>
 
@@ -408,34 +517,43 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
                           <strong className="text-white">{evt.registeredCount}</strong> / {evt.capacity} Registered
                         </span>
 
-                        <button
-                          disabled={isFull || isRegistering}
-                          onClick={() => onRegisterEvent && onRegisterEvent(evt.id)}
-                          className={`py-2 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
-                            isFull
-                              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700'
-                              : isRegistering
-                              ? 'bg-[#ff7a00]/50 text-black cursor-wait animate-pulse'
-                              : 'bg-gradient-to-r from-[#ff7a00] to-[#ff9e00] text-black shadow-[0_0_14px_rgba(255,122,0,0.35)] hover:brightness-110 active:scale-95'
-                          }`}
-                        >
-                          <Ticket className="w-3.5 h-3.5" />
-                          <span>
-                            {isFull
-                              ? 'Capacity Full'
-                              : isRegistering
-                              ? 'Registering...'
-                              : 'Register Now'}
-                          </span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => onSelectEventDetails(evt)}
+                            className="py-2 px-3 rounded-xl bg-[#1e2436] hover:bg-[#28324a] text-zinc-300 hover:text-white font-medium text-xs transition-colors cursor-pointer border border-white/10"
+                          >
+                            Details
+                          </button>
+
+                          <button
+                            disabled={isFull || isRegistering}
+                            onClick={() => onOpenRegistrationModal(evt)}
+                            className={`py-2 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
+                              isFull
+                                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700'
+                                : isRegistering
+                                ? 'bg-[#ff7a00]/50 text-black cursor-wait animate-pulse'
+                                : 'bg-gradient-to-r from-[#ff7a00] to-[#ff9e00] text-black shadow-[0_0_14px_rgba(255,122,0,0.35)] hover:brightness-110 active:scale-95'
+                            }`}
+                          >
+                            <Ticket className="w-3.5 h-3.5" />
+                            <span>
+                              {isFull
+                                ? 'Capacity Full'
+                                : isRegistering
+                                ? 'Registering...'
+                                : 'Register Now'}
+                            </span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 );
-              })}
-            </div>
+              })
+            )}
           </div>
-        )}
+        </section>
 
         {/* Notifications & Alerts Section matching Image 16 */}
         <div className="rounded-2xl bg-[#141824] border border-white/5 p-4 space-y-3">
@@ -520,7 +638,10 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
         </button>
 
         <button
-          onClick={() => registeredEvents[0] && onOpenTicket(registeredEvents[0])}
+          onClick={() => {
+            const el = document.getElementById('my-registrations');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
           className="flex flex-col items-center gap-0.5 text-zinc-400 hover:text-white cursor-pointer"
         >
           <CalendarCheck className="w-4 h-4" />

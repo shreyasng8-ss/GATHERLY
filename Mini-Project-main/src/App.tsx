@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ScreenId, EventItem, TeamMember, TaskItem, NotificationItem } from './types';
+import { ScreenId, EventItem, TeamMember, TaskItem, NotificationItem, EventRegistrationPayload } from './types';
 import {
   initialEvents,
   initialTeamMembers,
@@ -24,7 +24,8 @@ import { EventPrepScreen } from './components/screens/EventPrepScreen';
 import { OrgSetupScreen } from './components/screens/OrgSetupScreen';
 import { SettingsScreen } from './components/screens/SettingsScreen';
 import { TicketModal } from './components/modals/TicketModal';
-import { Loader2 } from 'lucide-react';
+import { EventDetailsModal } from './components/modals/EventDetailsModal';
+import { EventRegistrationModal } from './components/modals/EventRegistrationModal';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('login');
@@ -32,7 +33,7 @@ export default function App() {
 
   // Application State
   const [events, setEvents] = useState<EventItem[]>(initialEvents);
-  const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(true);
+  const [, setIsLoadingEvents] = useState<boolean>(true);
   const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
   const [registeringEventId, setRegisteringEventId] = useState<string | null>(null);
 
@@ -42,10 +43,18 @@ export default function App() {
     useState<NotificationItem[]>(initialOrganizerNotifications);
   const [studentNotifs, setStudentNotifs] =
     useState<NotificationItem[]>(initialStudentNotifications);
-  
+
   // Ticket Modal State
   const [ticketEvent, setTicketEvent] = useState<EventItem | null>(null);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
+
+  // Event Details Modal State
+  const [detailsEvent, setDetailsEvent] = useState<EventItem | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  // Event Registration Modal State
+  const [registerModalEvent, setRegisterModalEvent] = useState<EventItem | null>(null);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
   // Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -57,7 +66,7 @@ export default function App() {
     }, 3200);
   }, []);
 
-  // Fetch events from real backend API and check student registrations
+  // Fetch events and student registrations from real backend API
   const refreshEvents = useCallback(async (quiet = false) => {
     try {
       if (!quiet) setIsLoadingEvents(true);
@@ -68,22 +77,34 @@ export default function App() {
       ]);
 
       if (eventsResult.status === 'fulfilled' && Array.isArray(eventsResult.value)) {
-        // Build set of registered event IDs for the logged-in student
-        const registeredIds = new Set<string>();
+        // Build map of registered event IDs and registration details
+        const regMap = new Map<string, { registrationId: string; ticketId: string; seatPass?: string }>();
         if (
           studentRegsResult.status === 'fulfilled' &&
           Array.isArray(studentRegsResult.value?.registrations)
         ) {
           for (const item of studentRegsResult.value.registrations) {
-            if (item.registration?.eventId) registeredIds.add(item.registration.eventId);
-            if (item.event?.id) registeredIds.add(item.event.id);
+            const evId = item.registration?.eventId || item.event?.id;
+            if (evId) {
+              regMap.set(evId, {
+                registrationId: item.registration.id,
+                ticketId: item.registration.ticketId,
+                seatPass: item.registration.seatPass
+              });
+            }
           }
         }
 
-        const syncedEvents = eventsResult.value.map((evt) => ({
-          ...evt,
-          isRegistered: registeredIds.has(evt.id) || Boolean(evt.isRegistered),
-        }));
+        const syncedEvents = eventsResult.value.map((evt) => {
+          const regInfo = regMap.get(evt.id);
+          return {
+            ...evt,
+            isRegistered: Boolean(regInfo) || Boolean(evt.isRegistered),
+            registrationId: regInfo?.registrationId || evt.registrationId,
+            ticketId: regInfo?.ticketId || evt.ticketId,
+            seatPass: regInfo?.seatPass || evt.seatPass
+          };
+        });
 
         setEvents(syncedEvents);
       }
@@ -94,9 +115,22 @@ export default function App() {
     }
   }, []);
 
+  // Fetch organizer tasks from backend API
+  const refreshTasks = useCallback(async () => {
+    try {
+      const serverTasks = await api.getTasks();
+      if (Array.isArray(serverTasks) && serverTasks.length > 0) {
+        setTasks(serverTasks);
+      }
+    } catch (err) {
+      console.warn('Tasks API note, using initial local tasks:', err);
+    }
+  }, []);
+
   useEffect(() => {
     refreshEvents();
-  }, [refreshEvents]);
+    refreshTasks();
+  }, [refreshEvents, refreshTasks]);
 
   const handleResetData = () => {
     setEvents(initialEvents);
@@ -106,34 +140,50 @@ export default function App() {
     showToast('Application mock data reset to original defaults.');
   };
 
-  const handleToggleTask = (taskId: string) => {
+  const handleToggleTask = async (taskId: string) => {
+    // Optimistic UI update
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t))
     );
+
+    try {
+      const updated = await api.toggleTask(taskId);
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? updated : t))
+      );
+    } catch (err) {
+      console.warn('Task toggle offline fallback:', err);
+    }
   };
 
-  const handleAddTask = (title: string, assignee: string, assigneeAvatar?: string) => {
-    const newTask: TaskItem = {
-      id: `task-${Date.now()}`,
-      title,
-      assignee,
-      assigneeAvatar,
-      completed: false,
-    };
-    setTasks((prev) => [...prev, newTask]);
+  const handleAddTask = async (title: string, assignee: string, assigneeAvatar?: string) => {
+    try {
+      const created = await api.createTask({ title, assignee, assigneeAvatar });
+      setTasks((prev) => [...prev, created]);
+      showToast(`Task "${title}" created and saved!`);
+    } catch (err: any) {
+      console.error('Failed to save task to backend:', err);
+      const fallbackTask: TaskItem = {
+        id: `task-${Date.now()}`,
+        title,
+        assignee,
+        assigneeAvatar,
+        completed: false,
+      };
+      setTasks((prev) => [...prev, fallbackTask]);
+      showToast('Task added locally.');
+    }
   };
 
-  // Feature 1: Create Event via real API
+  // Create Event via real API
   const handlePublishEvent = async (newEventData: Partial<EventItem>) => {
     try {
       const created = await api.createEvent(newEventData);
       setEvents((prev) => [created, ...prev]);
       showToast(`Event "${created.title}" published & saved to backend!`);
-      // Re-sync with backend in background
       refreshEvents(true);
     } catch (err: any) {
       console.error('Failed to publish event via API:', err);
-      // Fallback local creation if backend unavailable
       const fallbackEvt: EventItem = {
         id: `evt-${Date.now()}`,
         title: newEventData.title || 'Untitled Event',
@@ -156,7 +206,7 @@ export default function App() {
     }
   };
 
-  // Feature 1: Update Event via real API
+  // Update Event via real API
   const handleUpdateEvent = async (id: string, updatedData: Partial<EventItem>) => {
     try {
       const updated = await api.updateEvent(id, updatedData);
@@ -175,7 +225,7 @@ export default function App() {
     }
   };
 
-  // Feature 1: Delete Event via real API
+  // Delete Event via real API
   const handleDeleteEvent = async (id: string) => {
     try {
       await api.deleteEvent(id);
@@ -188,17 +238,14 @@ export default function App() {
     }
   };
 
-  // Feature 2: Event Registration via real API
-  const handleRegisterEvent = async (eventId: string) => {
+  // Event Registration Submit via real API
+  const handleSubmitRegistration = async (
+    eventId: string,
+    payload: EventRegistrationPayload
+  ) => {
+    setRegisteringEventId(eventId);
     try {
-      setRegisteringEventId(eventId);
-      const res = await api.registerForEvent(eventId, {
-        studentId: studentProfile.studentId,
-        studentName: studentProfile.name,
-        studentEmail: 'alex.chen@campus.edu',
-      });
-
-      showToast(res.message || 'Registration successful!');
+      const res = await api.registerForEvent(eventId, payload);
 
       // Update state with newly recalculated registration count and marked as registered
       setEvents((prev) =>
@@ -208,22 +255,27 @@ export default function App() {
                 ...e,
                 ...res.event,
                 isRegistered: true,
+                registrationId: res.registration.id,
+                ticketId: res.registration.ticketId,
+                seatPass: res.registration.seatPass,
               }
             : e
         )
       );
 
-      // Open ticket pass for the newly registered event
-      handleOpenTicket({
-        ...res.event,
-        isRegistered: true,
-      });
-
-      // Synchronize in background
+      showToast(`Registered for "${res.event.title}"! Ticket generated.`);
       refreshEvents(true);
-    } catch (err: any) {
-      console.error('Registration error:', err);
-      showToast(err?.message || 'Registration failed.');
+
+      return {
+        registration: res.registration,
+        event: {
+          ...res.event,
+          isRegistered: true,
+          registrationId: res.registration.id,
+          ticketId: res.registration.ticketId,
+          seatPass: res.registration.seatPass
+        }
+      };
     } finally {
       setRegisteringEventId(null);
     }
@@ -232,6 +284,16 @@ export default function App() {
   const handleOpenTicket = (event: EventItem) => {
     setTicketEvent(event);
     setIsTicketOpen(true);
+  };
+
+  const handleOpenDetails = (event: EventItem) => {
+    setDetailsEvent(event);
+    setIsDetailsOpen(true);
+  };
+
+  const handleOpenRegistrationModal = (event: EventItem) => {
+    setRegisterModalEvent(event);
+    setIsRegisterModalOpen(true);
   };
 
   const handleMarkAllRead = () => {
@@ -292,9 +354,10 @@ export default function App() {
             notifications={studentNotifs}
             onNavigate={(screen) => setCurrentScreen(screen)}
             onOpenTicket={handleOpenTicket}
+            onSelectEventDetails={handleOpenDetails}
+            onOpenRegistrationModal={handleOpenRegistrationModal}
             onMarkAllRead={handleMarkAllRead}
             onShowToast={showToast}
-            onRegisterEvent={handleRegisterEvent}
             registeringEventId={registeringEventId}
           />
         )}
@@ -344,6 +407,29 @@ export default function App() {
         profile={studentProfile}
         isOpen={isTicketOpen}
         onClose={() => setIsTicketOpen(false)}
+      />
+
+      {/* Detailed Event Modal */}
+      <EventDetailsModal
+        event={detailsEvent}
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        onRegisterClick={(evt) => {
+          handleOpenRegistrationModal(evt);
+        }}
+        onViewTicketClick={(evt) => {
+          handleOpenTicket(evt);
+        }}
+      />
+
+      {/* Student Event Registration Form Modal */}
+      <EventRegistrationModal
+        event={registerModalEvent}
+        profile={studentProfile}
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+        onSubmitRegistration={handleSubmitRegistration}
+        onOpenTicket={(evt) => handleOpenTicket(evt)}
       />
 
       {/* Toast Notification Banner */}

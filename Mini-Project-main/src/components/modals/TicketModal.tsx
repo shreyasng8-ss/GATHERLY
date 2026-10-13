@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import QRCode from 'qrcode';
 import { EventItem, StudentProfile } from '../../types';
 import {
   X,
@@ -9,7 +10,8 @@ import {
   Clock,
   CheckCircle2,
   ShieldCheck,
-  ChevronLeft,
+  Copy,
+  Check
 } from 'lucide-react';
 
 interface TicketModalProps {
@@ -25,26 +27,74 @@ export const TicketModal: React.FC<TicketModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [isCopied, setIsCopied] = useState<boolean>(false);
+
+  // Derive unique ticket ID from event or fallback
+  const ticketId =
+    event?.ticketId ||
+    `TKT-${(event?.id || 'EVT').toUpperCase().replace(/[^A-Z0-9]/g, '')}-${(profile?.studentId || 'STUDENT').replace(/[^A-Z0-9]/g, '')}`;
+
+  // Generate real dynamic scannable QR code whenever ticket opens
+  useEffect(() => {
+    if (!isOpen || !event) return;
+
+    let isMounted = true;
+    const qrPayload = JSON.stringify({
+      ticketId,
+      eventId: event.id,
+      title: event.title,
+      studentName: profile.name,
+      studentId: profile.studentId,
+      venue: event.venue,
+      date: event.date,
+      seatPass: event.seatPass || 'General Pass',
+      verifiedAt: new Date().toISOString()
+    });
+
+    QRCode.toDataURL(qrPayload, {
+      width: 256,
+      margin: 2,
+      color: {
+        dark: '#070b0c',
+        light: '#ffffff'
+      },
+      errorCorrectionLevel: 'M'
+    })
+      .then((url) => {
+        if (isMounted) setQrDataUrl(url);
+      })
+      .catch((err) => {
+        console.error('Failed to generate QR code:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, event, profile, ticketId]);
+
   // Support Escape key to return to dashboard
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  const handleCopyTicketId = () => {
+    navigator.clipboard.writeText(ticketId);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   if (!isOpen || !event) return null;
 
   return (
     <div
       onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
+        if (e.target === e.currentTarget) onClose();
       }}
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto"
     >
@@ -75,9 +125,9 @@ export const TicketModal: React.FC<TicketModalProps> = ({
           <div className="relative bg-gradient-to-b from-[#221c2c] to-[#121622] px-6 pt-4 pb-4 border-b border-[#ff7a00]/20">
             <div className="flex items-center gap-2 text-xs font-semibold tracking-wider text-[#ff7a00] uppercase mb-1">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Digital Event Pass</span>
+              <span>Digital Gate Pass</span>
               <span className="ml-auto text-[10px] bg-[#ff7a00]/20 text-[#ffb68b] px-2 py-0.5 rounded-full border border-[#ff7a00]/30 font-mono">
-                FAST PASS
+                AUTHENTICATED
               </span>
             </div>
 
@@ -86,7 +136,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
             </h3>
 
             <div className="mt-2 flex items-center gap-2 text-xs text-zinc-400">
-              <span className="text-[#ff9e00] font-medium">{event.category}</span>
+              <span className="text-[#ff9e00] font-medium">{event.category || event.type || 'Workshop'}</span>
               <span>•</span>
               <span>{event.seatPass || 'General Access'}</span>
             </div>
@@ -127,50 +177,38 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               </div>
             </div>
 
-            {/* QR Code Container with simulated scanning effect */}
+            {/* Scannable QR Code Container with real dynamic QR code image */}
             <div className="p-4 rounded-2xl bg-white flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
-              <div className="relative w-44 h-44 flex items-center justify-center">
-                {/* Dynamic QR SVG */}
-                <svg className="w-40 h-40 text-black" viewBox="0 0 100 100" fill="currentColor">
-                  <rect x="5" y="5" width="25" height="25" rx="3" fill="#000" />
-                  <rect x="9" y="9" width="17" height="17" rx="2" fill="#fff" />
-                  <rect x="13" y="13" width="9" height="9" fill="#ff7a00" />
-                  
-                  <rect x="70" y="5" width="25" height="25" rx="3" fill="#000" />
-                  <rect x="74" y="9" width="17" height="17" rx="2" fill="#fff" />
-                  <rect x="78" y="13" width="9" height="9" fill="#ff7a00" />
-
-                  <rect x="5" y="70" width="25" height="25" rx="3" fill="#000" />
-                  <rect x="9" y="74" width="17" height="17" rx="2" fill="#fff" />
-                  <rect x="13" y="78" width="9" height="9" fill="#ff7a00" />
-
-                  {/* Matrix dots */}
-                  <rect x="35" y="10" width="6" height="6" fill="#000" />
-                  <rect x="45" y="15" width="6" height="6" fill="#000" />
-                  <rect x="55" y="8" width="6" height="6" fill="#000" />
-                  <rect x="35" y="25" width="6" height="6" fill="#000" />
-                  <rect x="48" y="28" width="6" height="6" fill="#000" />
-
-                  <rect x="10" y="40" width="6" height="6" fill="#000" />
-                  <rect x="22" y="48" width="6" height="6" fill="#000" />
-                  <rect x="36" y="42" width="8" height="8" fill="#ff7a00" />
-                  <rect x="50" y="46" width="6" height="6" fill="#000" />
-                  <rect x="62" y="40" width="8" height="8" fill="#000" />
-                  <rect x="78" y="46" width="6" height="6" fill="#000" />
-
-                  <rect x="40" y="65" width="6" height="6" fill="#000" />
-                  <rect x="52" y="72" width="6" height="6" fill="#000" />
-                  <rect x="65" y="62" width="6" height="6" fill="#000" />
-                  <rect x="78" y="75" width="6" height="6" fill="#000" />
-                  <rect x="88" y="82" width="6" height="6" fill="#000" />
-                </svg>
+              <div className="relative w-44 h-44 flex items-center justify-center bg-white rounded-xl">
+                {qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt="Scannable Event QR Code"
+                    className="w-40 h-40 object-contain rounded-lg"
+                  />
+                ) : (
+                  <div className="w-40 h-40 flex items-center justify-center text-zinc-400 text-xs font-mono">
+                    Generating QR...
+                  </div>
+                )}
 
                 {/* Animated laser scan line */}
-                <div className="absolute inset-x-2 top-0 h-1 bg-[#ff7a00] shadow-[0_0_12px_#ff7a00] animate-pulse" />
+                <div className="absolute inset-x-2 top-0 h-1 bg-[#ff7a00] shadow-[0_0_12px_#ff7a00] animate-pulse pointer-events-none" />
               </div>
-              <p className="mt-2 text-[11px] font-mono font-bold tracking-widest text-zinc-800">
-                GTH-SCAN-{event.id.toUpperCase()}-PASS
-              </p>
+
+              {/* Pass ID Display & Copy Button */}
+              <div className="mt-2.5 flex items-center gap-1.5 bg-zinc-100 px-2.5 py-1 rounded-lg border border-zinc-300">
+                <p className="text-[11px] font-mono font-bold tracking-wider text-zinc-900 select-all">
+                  {ticketId}
+                </p>
+                <button
+                  onClick={handleCopyTicketId}
+                  className="p-1 hover:bg-zinc-200 rounded text-zinc-700 transition-colors cursor-pointer"
+                  title="Copy Ticket ID"
+                >
+                  {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
+              </div>
             </div>
 
             {/* Barcode Strip */}
@@ -184,8 +222,8 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   />
                 ))}
               </div>
-              <p className="text-[10px] font-mono text-zinc-500 mt-1">
-                HOLD TO TERMINAL SCANNER • AUTO-VALIDATES ON ENTRY
+              <p className="text-[10px] font-mono text-zinc-500 mt-1 uppercase">
+                Hold to terminal scanner • Fast Pass Entry
               </p>
             </div>
           </div>

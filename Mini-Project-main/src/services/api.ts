@@ -1,4 +1,10 @@
-import { EventItem, RegistrationRecord } from '../types';
+import {
+  EventItem,
+  RegistrationRecord,
+  EventRegistrationPayload,
+  TicketVerificationResponse,
+  TaskItem
+} from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -81,12 +87,7 @@ export const api = {
   // 6. POST /api/events/:id/register
   async registerForEvent(
     eventId: string,
-    studentData: {
-      studentId: string;
-      studentName?: string;
-      studentEmail?: string;
-      seatPass?: string;
-    }
+    studentData: EventRegistrationPayload
   ): Promise<{
     message: string;
     registration: RegistrationRecord;
@@ -136,5 +137,42 @@ export const api = {
       count: number;
       registrations: Array<{ registration: RegistrationRecord; event: EventItem }>;
     }>(res);
+  },
+
+  // 9. GET /api/tickets/:ticketId/verify
+  async verifyTicket(ticketId: string): Promise<TicketVerificationResponse> {
+    const res = await fetch(`${API_BASE_URL}/tickets/${encodeURIComponent(ticketId)}/verify`);
+    return handleResponse<TicketVerificationResponse>(res);
+  },
+
+  // 10. Tasks Persistence
+  async getTasks(): Promise<TaskItem[]> {
+    const res = await fetch(`${API_BASE_URL}/tasks`);
+    return handleResponse<TaskItem[]>(res);
+  },
+
+  async createTask(data: { title: string; assignee: string; assigneeAvatar?: string }): Promise<TaskItem> {
+    const res = await fetch(`${API_BASE_URL}/tasks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<TaskItem>(res);
+  },
+
+  async toggleTask(id: string): Promise<TaskItem> {
+    const res = await fetch(`${API_BASE_URL}/tasks/${encodeURIComponent(id)}/toggle`, {
+      method: 'PATCH',
+    });
+    return handleResponse<TaskItem>(res);
+  },
+
+  async deleteTask(id: string): Promise<{ message: string; id: string }> {
+    const res = await fetch(`${API_BASE_URL}/tasks/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+    return handleResponse<{ message: string; id: string }>(res);
   },
 };

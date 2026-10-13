@@ -1,7 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { EventItem, RegistrationRecord } from '../../src/types';
+import {
+  EventItem,
+  RegistrationRecord,
+  TaskItem,
+  TicketVerificationResponse
+} from '../../src/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +17,7 @@ const DATA_DIR = process.env.DATA_DIR
 
 const EVENTS_FILE = path.join(DATA_DIR, 'events.json');
 const REGISTRATIONS_FILE = path.join(DATA_DIR, 'registrations.json');
+const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
 
 // Memory lock to queue concurrent writes safely
 let writeLock = Promise.resolve();
@@ -117,8 +123,15 @@ const SEED_REGISTRATIONS: RegistrationRecord[] = [
     studentId: '#GTH-8821',
     studentName: 'Alex Chen',
     studentEmail: 'alex.chen@campus.edu',
+    studentPhone: '+1 (555) 234-5678',
+    rollNumber: 'GTH-8821',
+    department: 'Computer Science & Engineering',
+    yearOfStudy: 'Senior (Year 4)',
+    collegeName: 'Campus Institute of Technology',
+    ticketId: 'TKT-EVT1-ALEXCHEN',
+    seatPass: 'Zone B-14',
     registeredAt: '2024-10-10T12:00:00.000Z',
-    seatPass: 'Zone B-14'
+    status: 'Confirmed'
   },
   {
     id: 'reg-seed-2',
@@ -126,8 +139,15 @@ const SEED_REGISTRATIONS: RegistrationRecord[] = [
     studentId: '#GTH-9102',
     studentName: 'Sarah Jenkins',
     studentEmail: 'sarah.j@campus.edu',
+    studentPhone: '+1 (555) 345-6789',
+    rollNumber: 'GTH-9102',
+    department: 'Electrical Engineering',
+    yearOfStudy: 'Junior (Year 3)',
+    collegeName: 'Campus Institute of Technology',
+    ticketId: 'TKT-EVT1-SARAHJ',
+    seatPass: 'Zone B-15',
     registeredAt: '2024-10-11T14:15:00.000Z',
-    seatPass: 'Zone B-15'
+    status: 'Confirmed'
   },
   {
     id: 'reg-seed-3',
@@ -135,8 +155,15 @@ const SEED_REGISTRATIONS: RegistrationRecord[] = [
     studentId: '#GTH-7734',
     studentName: 'Marcus Thorne',
     studentEmail: 'marcus.t@campus.edu',
+    studentPhone: '+1 (555) 456-7890',
+    rollNumber: 'GTH-7734',
+    department: 'Mechanical Engineering',
+    yearOfStudy: 'Senior (Year 4)',
+    collegeName: 'Campus Institute of Technology',
+    ticketId: 'TKT-EVT1-MARCUST',
+    seatPass: 'Zone B-16',
     registeredAt: '2024-10-11T16:45:00.000Z',
-    seatPass: 'Zone B-16'
+    status: 'Confirmed'
   },
   {
     id: 'reg-seed-4',
@@ -144,8 +171,15 @@ const SEED_REGISTRATIONS: RegistrationRecord[] = [
     studentId: '#GTH-8821',
     studentName: 'Alex Chen',
     studentEmail: 'alex.chen@campus.edu',
+    studentPhone: '+1 (555) 234-5678',
+    rollNumber: 'GTH-8821',
+    department: 'Computer Science & Engineering',
+    yearOfStudy: 'Senior (Year 4)',
+    collegeName: 'Campus Institute of Technology',
+    ticketId: 'TKT-EVT2-ALEXCHEN',
+    seatPass: 'Zone A-08',
     registeredAt: '2024-10-12T09:30:00.000Z',
-    seatPass: 'Zone A-08'
+    status: 'Confirmed'
   },
   {
     id: 'reg-seed-5',
@@ -153,10 +187,73 @@ const SEED_REGISTRATIONS: RegistrationRecord[] = [
     studentId: '#GTH-8551',
     studentName: 'Leo Kim',
     studentEmail: 'leo.kim@campus.edu',
+    studentPhone: '+1 (555) 567-8901',
+    rollNumber: 'GTH-8551',
+    department: 'Design & Media Arts',
+    yearOfStudy: 'Sophomore (Year 2)',
+    collegeName: 'Campus Institute of Technology',
+    ticketId: 'TKT-EVT2-LEOKIM',
+    seatPass: 'Zone A-09',
     registeredAt: '2024-10-12T11:00:00.000Z',
-    seatPass: 'Zone A-09'
+    status: 'Confirmed'
   }
 ];
+
+const SEED_TASKS: TaskItem[] = [
+  {
+    id: 'tsk-1',
+    title: 'Book Venue',
+    assignee: 'Marcus Thorne',
+    assigneeAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    completed: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'tsk-2',
+    title: 'Finalize Guest Speaker',
+    assignee: 'Priya Das',
+    assigneeAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
+    completed: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'tsk-3',
+    title: 'Setup Registration Form',
+    assignee: 'Sarah Jenkins',
+    assigneeAvatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
+    completed: false,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'tsk-4',
+    title: 'Social Media Graphics',
+    assignee: 'Leo Kim',
+    assigneeAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    completed: false,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'tsk-5',
+    title: 'Equipment Check',
+    assignee: 'Maya Patel',
+    assigneeAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+    completed: false,
+    createdAt: new Date().toISOString()
+  }
+];
+
+export interface RegisterStudentData {
+  studentId: string;
+  studentName?: string;
+  studentEmail?: string;
+  studentPhone?: string;
+  rollNumber?: string;
+  department?: string;
+  yearOfStudy?: string;
+  collegeName?: string;
+  additionalNotes?: string;
+  seatPass?: string;
+}
 
 export class StorageService {
   private initialized = false;
@@ -176,6 +273,29 @@ export class StorageService {
     if (!fs.existsSync(REGISTRATIONS_FILE)) {
       await safeWriteJson(REGISTRATIONS_FILE, SEED_REGISTRATIONS);
       console.log('[Storage] Initialized registrations.json with seed registrations.');
+    } else {
+      // Ensure seed records have ticketId
+      const existingRegs = await safeReadJson<RegistrationRecord[]>(REGISTRATIONS_FILE, []);
+      let updated = false;
+      for (const reg of existingRegs) {
+        if (!reg.ticketId) {
+          reg.ticketId = `TKT-${reg.eventId.toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+          updated = true;
+        }
+        if (!reg.status) {
+          reg.status = 'Confirmed';
+          updated = true;
+        }
+      }
+      if (updated) {
+        await safeWriteJson(REGISTRATIONS_FILE, existingRegs);
+      }
+    }
+
+    // Initialize tasks if file does not exist or is empty
+    if (!fs.existsSync(TASKS_FILE)) {
+      await safeWriteJson(TASKS_FILE, SEED_TASKS);
+      console.log('[Storage] Initialized tasks.json with seed tasks.');
     }
 
     this.initialized = true;
@@ -191,12 +311,21 @@ export class StorageService {
     return safeReadJson<RegistrationRecord[]>(REGISTRATIONS_FILE, []);
   }
 
+  private async readTasksRaw(): Promise<TaskItem[]> {
+    await this.init();
+    return safeReadJson<TaskItem[]>(TASKS_FILE, []);
+  }
+
   private async writeEventsRaw(events: EventItem[]): Promise<void> {
     await safeWriteJson(EVENTS_FILE, events);
   }
 
   private async writeRegistrationsRaw(registrations: RegistrationRecord[]): Promise<void> {
     await safeWriteJson(REGISTRATIONS_FILE, registrations);
+  }
+
+  private async writeTasksRaw(tasks: TaskItem[]): Promise<void> {
+    await safeWriteJson(TASKS_FILE, tasks);
   }
 
   // Calculate actual registration counts from stored registrations
@@ -207,6 +336,10 @@ export class StorageService {
       registeredCount: eventRegistrations.length
     };
   }
+
+  // -------------------------------------------------------------
+  // EVENT OPERATIONS
+  // -------------------------------------------------------------
 
   async getAllEvents(options?: { category?: string; search?: string }): Promise<EventItem[]> {
     return withLock(async () => {
@@ -344,14 +477,13 @@ export class StorageService {
     });
   }
 
+  // -------------------------------------------------------------
+  // REGISTRATION & TICKET OPERATIONS
+  // -------------------------------------------------------------
+
   async registerStudent(
     eventId: string,
-    data: {
-      studentId: string;
-      studentName?: string;
-      studentEmail?: string;
-      seatPass?: string;
-    }
+    data: RegisterStudentData
   ): Promise<{
     success: boolean;
     statusCode: number;
@@ -377,23 +509,28 @@ export class StorageService {
         };
       }
 
-      const cleanStudentId = data.studentId.trim();
+      const cleanStudentId = (data.studentId || '').trim();
+      const cleanRollNumber = (data.rollNumber || cleanStudentId).trim();
 
-      // Normalize student IDs for duplicate checking (e.g., #GTH-8821 and GTH-8821)
-      const normalizeId = (id: string) => id.replace(/^#/, '').toLowerCase();
-      const normalizedTarget = normalizeId(cleanStudentId);
+      // Normalize IDs for duplicate checking (e.g. "#GTH-8821" vs "gth-8821")
+      const normalizeId = (id: string) => id.replace(/^#/, '').toLowerCase().trim();
+      const targetStudent = normalizeId(cleanStudentId);
+      const targetRoll = normalizeId(cleanRollNumber);
 
       // 2. Prevent duplicate registrations for same student and event
-      const isAlreadyRegistered = registrations.some(
-        (r) => r.eventId === eventId && normalizeId(r.studentId) === normalizedTarget
-      );
+      const isAlreadyRegistered = registrations.some((r) => {
+        if (r.eventId !== eventId) return false;
+        const rStudent = normalizeId(r.studentId || '');
+        const rRoll = normalizeId(r.rollNumber || r.studentId || '');
+        return rStudent === targetStudent || (targetRoll && rRoll === targetRoll);
+      });
 
       if (isAlreadyRegistered) {
         return {
           success: false,
           statusCode: 409,
           error: 'Duplicate registration',
-          message: `Student '${cleanStudentId}' is already registered for event '${event.title}'.`
+          message: `Student with roll number/ID '${cleanRollNumber || cleanStudentId}' is already registered for '${event.title}'.`
         };
       }
 
@@ -408,15 +545,30 @@ export class StorageService {
         };
       }
 
-      // 4. Create and persist registration
+      // 4. Generate unique Digital Ticket Gate Pass ID
+      const eventCode = event.id.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const uniqueSuffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+      const ticketId = `TKT-${eventCode}-${uniqueSuffix}`;
+
+      // 5. Create and persist registration record
+      const regId = `reg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const seatPass = data.seatPass || event.seatPass || `Zone A-Seat ${currentRegistrations.length + 1}`;
+
       const newRegistration: RegistrationRecord = {
-        id: `reg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        id: regId,
         eventId,
         studentId: cleanStudentId,
-        studentName: data.studentName?.trim() || 'Student Attendee',
-        studentEmail: data.studentEmail?.trim() || undefined,
+        studentName: (data.studentName || 'Student Attendee').trim(),
+        studentEmail: (data.studentEmail || '').trim(),
+        studentPhone: data.studentPhone?.trim() || undefined,
+        rollNumber: cleanRollNumber,
+        department: data.department?.trim() || 'General Engineering',
+        yearOfStudy: data.yearOfStudy?.trim() || 'Year 1',
+        collegeName: data.collegeName?.trim() || 'Campus Institute of Technology',
+        ticketId,
+        seatPass,
         registeredAt: new Date().toISOString(),
-        seatPass: data.seatPass || event.seatPass || 'General Admission'
+        status: 'Confirmed'
       };
 
       registrations.push(newRegistration);
@@ -469,12 +621,14 @@ export class StorageService {
         this.readRegistrationsRaw()
       ]);
 
-      const normalizeId = (id: string) => id.replace(/^#/, '').toLowerCase();
+      const normalizeId = (id: string) => id.replace(/^#/, '').toLowerCase().trim();
       const target = normalizeId(studentId);
 
-      const studentRegs = registrations.filter(
-        (r) => normalizeId(r.studentId) === target
-      );
+      const studentRegs = registrations.filter((r) => {
+        const sId = normalizeId(r.studentId || '');
+        const rRoll = normalizeId(r.rollNumber || '');
+        return sId === target || (rRoll && rRoll === target);
+      });
 
       const results: Array<{ registration: RegistrationRecord; event: EventItem }> = [];
 
@@ -489,6 +643,114 @@ export class StorageService {
       }
 
       return results;
+    });
+  }
+
+  async getTicketVerification(ticketId: string): Promise<TicketVerificationResponse> {
+    return withLock(async () => {
+      const [events, registrations] = await Promise.all([
+        this.readEventsRaw(),
+        this.readRegistrationsRaw()
+      ]);
+
+      const cleanQuery = ticketId.trim().toLowerCase();
+
+      const reg = registrations.find(
+        (r) =>
+          (r.ticketId && r.ticketId.toLowerCase() === cleanQuery) ||
+          r.id.toLowerCase() === cleanQuery
+      );
+
+      if (!reg) {
+        return {
+          valid: false,
+          ticketId,
+          error: 'Ticket not found',
+          message: `No gate pass or registration matches ticket ID '${ticketId}'.`,
+          verifiedAt: new Date().toISOString()
+        };
+      }
+
+      const event = events.find((e) => e.id === reg.eventId);
+
+      return {
+        valid: true,
+        ticketId: reg.ticketId,
+        registrationId: reg.id,
+        studentId: reg.studentId,
+        studentName: reg.studentName,
+        studentEmail: reg.studentEmail,
+        rollNumber: reg.rollNumber,
+        department: reg.department,
+        yearOfStudy: reg.yearOfStudy,
+        seatPass: reg.seatPass,
+        registeredAt: reg.registeredAt,
+        status: reg.status || 'Confirmed',
+        event: event
+          ? {
+              id: event.id,
+              title: event.title,
+              category: event.category,
+              date: event.date,
+              time: event.time,
+              venue: event.venue,
+              organizer: event.organizer
+            }
+          : undefined,
+        message: 'Gate pass successfully verified and approved for entry.',
+        verifiedAt: new Date().toISOString()
+      };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // TASK OPERATIONS
+  // -------------------------------------------------------------
+
+  async getAllTasks(): Promise<TaskItem[]> {
+    return withLock(async () => {
+      return this.readTasksRaw();
+    });
+  }
+
+  async createTask(data: { title: string; assignee: string; assigneeAvatar?: string }): Promise<TaskItem> {
+    return withLock(async () => {
+      const tasks = await this.readTasksRaw();
+      const newTask: TaskItem = {
+        id: `tsk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        title: data.title.trim(),
+        assignee: data.assignee.trim(),
+        assigneeAvatar: data.assigneeAvatar,
+        completed: false,
+        createdAt: new Date().toISOString()
+      };
+      tasks.push(newTask);
+      await this.writeTasksRaw(tasks);
+      return newTask;
+    });
+  }
+
+  async toggleTask(id: string): Promise<TaskItem | null> {
+    return withLock(async () => {
+      const tasks = await this.readTasksRaw();
+      const task = tasks.find((t) => t.id === id);
+      if (!task) return null;
+
+      task.completed = !task.completed;
+      await this.writeTasksRaw(tasks);
+      return task;
+    });
+  }
+
+  async deleteTask(id: string): Promise<boolean> {
+    return withLock(async () => {
+      const tasks = await this.readTasksRaw();
+      const idx = tasks.findIndex((t) => t.id === id);
+      if (idx === -1) return false;
+
+      tasks.splice(idx, 1);
+      await this.writeTasksRaw(tasks);
+      return true;
     });
   }
 }
