@@ -1,5 +1,47 @@
 [
   {
+    "id": "evt-1791909249851-hr07",
+    "title": "ai hackathon",
+    "category": "Hackathon",
+    "type": "Hackathon",
+    "status": "Upcoming",
+    "date": "2024-10-15 • 10:00 AM",
+    "time": "10:00 AM",
+    "venue": "Student Union Hall",
+    "capacity": 200,
+    "registeredCount": 0,
+    "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
+    "description": "Connect with top employers from across the country looking for bright minds in tech, design, and management.",
+    "eligibleYears": [
+      "Freshman",
+      "Sophomore"
+    ],
+    "seatPass": "General Admission",
+    "organizer": "Campus Student Organization",
+    "registrationLink": "https://gatherly.campus.edu/rsvp/springfair2024"
+  },
+  {
+    "id": "evt-1791909104282-pfvr",
+    "title": "Spring Career Fair 2024",
+    "category": "Career",
+    "type": "Academic",
+    "status": "Upcoming",
+    "date": "2024-10-15 • 10:00 AM",
+    "time": "10:00 AM",
+    "venue": "Student Union Hall",
+    "capacity": 200,
+    "registeredCount": 0,
+    "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
+    "description": "Connect with top employers from across the country looking for bright minds in tech, design, and management.",
+    "eligibleYears": [
+      "Freshman",
+      "Sophomore"
+    ],
+    "seatPass": "General Admission",
+    "organizer": "Campus Student Organization",
+    "registrationLink": "https://gatherly.campus.edu/rsvp/springfair2024"
+  },
+  {
     "id": "evt-1791901717877-yheu",
     "title": "AI Agents & LLM Hackathon 2024",
     "category": "Hackathon",
