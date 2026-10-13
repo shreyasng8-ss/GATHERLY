@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   ShieldCheck,
   Copy,
-  Check
+  Check,
+  Download,
+  ExternalLink
 } from 'lucide-react';
 
 interface TicketModalProps {
@@ -29,30 +31,25 @@ export const TicketModal: React.FC<TicketModalProps> = ({
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
   // Derive unique ticket ID from event or fallback
   const ticketId =
     event?.ticketId ||
     `TKT-${(event?.id || 'EVT').toUpperCase().replace(/[^A-Z0-9]/g, '')}-${(profile?.studentId || 'STUDENT').replace(/[^A-Z0-9]/g, '')}`;
 
+  // Public verification URL encoded into QR Code (OPTION B: No sensitive personal info exposed!)
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://gatherly-tau-two.vercel.app';
+  const verificationUrl = `${origin}/verify?ticket=${encodeURIComponent(ticketId)}`;
+
   // Generate real dynamic scannable QR code whenever ticket opens
   useEffect(() => {
     if (!isOpen || !event) return;
 
     let isMounted = true;
-    const qrPayload = JSON.stringify({
-      ticketId,
-      eventId: event.id,
-      title: event.title,
-      studentName: profile.name,
-      studentId: profile.studentId,
-      venue: event.venue,
-      date: event.date,
-      seatPass: event.seatPass || 'General Pass',
-      verifiedAt: new Date().toISOString()
-    });
 
-    QRCode.toDataURL(qrPayload, {
+    // Encode ONLY the secure, opaque verification URL (NO student phone/email exposed)
+    QRCode.toDataURL(verificationUrl, {
       width: 256,
       margin: 2,
       color: {
@@ -71,7 +68,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, event, profile, ticketId]);
+  }, [isOpen, event, profile, ticketId, verificationUrl]);
 
   // Support Escape key to return to dashboard
   useEffect(() => {
@@ -89,6 +86,127 @@ export const TicketModal: React.FC<TicketModalProps> = ({
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const handleDownloadPass = () => {
+    if (!event || !qrDataUrl) return;
+    setIsDownloading(true);
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 880;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        setIsDownloading(false);
+        return;
+      }
+
+      // 1. Dark Cyber Card Background
+      ctx.fillStyle = '#0a0d14';
+      ctx.fillRect(0, 0, 640, 880);
+
+      // Gradient accent header
+      const grad = ctx.createLinearGradient(0, 0, 640, 0);
+      grad.addColorStop(0, '#ff7a00');
+      grad.addColorStop(1, '#ff9e00');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 640, 12);
+
+      // Card border
+      ctx.strokeStyle = 'rgba(255, 122, 0, 0.4)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(10, 10, 620, 860);
+
+      // 2. Header Area
+      ctx.fillStyle = '#1c1827';
+      ctx.fillRect(10, 10, 620, 100);
+
+      ctx.fillStyle = '#ff7a00';
+      ctx.font = 'bold 22px monospace';
+      ctx.fillText('GATHERLY DIGITAL GATE PASS', 30, 50);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText(event.title.slice(0, 42), 30, 85);
+
+      // 3. Attendee & Event Details Card
+      ctx.fillStyle = '#141824';
+      ctx.fillRect(30, 130, 580, 170);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(30, 130, 580, 170);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px monospace';
+      ctx.fillText('ATTENDEE NAME', 50, 160);
+      ctx.fillText('STUDENT ID', 340, 160);
+      ctx.fillText('DATE & TIME', 50, 220);
+      ctx.fillText('VENUE & SEAT', 340, 220);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillText(profile.name, 50, 185);
+      ctx.fillText(profile.studentId, 340, 185);
+
+      ctx.font = '14px sans-serif';
+      ctx.fillText(`${event.date} • ${event.time}`, 50, 245);
+      ctx.fillText(`${event.venue.slice(0, 20)} • ${event.seatPass || 'General Pass'}`, 340, 245);
+
+      // 4. White QR Container
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(170, 320, 300, 300, 24);
+      ctx.fill();
+
+      const qrImg = new Image();
+      qrImg.onload = () => {
+        ctx.drawImage(qrImg, 185, 335, 270, 270);
+
+        // 5. Pass Code & Security Footer
+        ctx.fillStyle = '#ff7a00';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(ticketId, 320, 660);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('Official Campus Check-In Pass • Scannable via Camera or External Apps', 320, 695);
+
+        ctx.fillStyle = '#475569';
+        ctx.font = '11px monospace';
+        ctx.fillText(verificationUrl, 320, 725);
+
+        // Barcode lines
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        const startX = 60;
+        for (let i = 0; i < 48; i++) {
+          const w = (i % 3 === 0 ? 3 : 1.5);
+          ctx.lineWidth = w;
+          ctx.beginPath();
+          ctx.moveTo(startX + i * 11, 760);
+          ctx.lineTo(startX + i * 11, 800);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px monospace';
+        ctx.fillText('AUTO-VALIDATES ON SCANNER • SECURE CAMPUS TELEMETRY', 320, 835);
+
+        // Download PNG
+        const link = document.createElement('a');
+        link.download = `Gatherly-GatePass-${ticketId}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        setIsDownloading(false);
+      };
+      qrImg.src = qrDataUrl;
+    } catch (err) {
+      console.error('Failed to download pass:', err);
+      setIsDownloading(false);
+    }
+  };
+
   if (!isOpen || !event) return null;
 
   return (
@@ -99,7 +217,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto"
     >
       <div className="relative w-full max-w-sm my-auto bg-[#121622] border border-[#ff7a00]/40 rounded-3xl shadow-[0_0_50px_rgba(255,122,0,0.35)] overflow-hidden text-zinc-100 flex flex-col max-h-[95vh]">
-        {/* Top Sticky Navigation Bar with clear "Back to Dashboard" */}
+        {/* Top Sticky Navigation Bar */}
         <div className="sticky top-0 z-20 bg-[#1c1827] px-4 py-3 border-b border-[#ff7a00]/30 flex items-center justify-between gap-2 shadow-md">
           <button
             onClick={onClose}
@@ -127,7 +245,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               <Sparkles className="w-3.5 h-3.5" />
               <span>Digital Gate Pass</span>
               <span className="ml-auto text-[10px] bg-[#ff7a00]/20 text-[#ffb68b] px-2 py-0.5 rounded-full border border-[#ff7a00]/30 font-mono">
-                AUTHENTICATED
+                EXTERNAL SCANNABLE
               </span>
             </div>
 
@@ -157,7 +275,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               </div>
               <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-500/20">
                 <ShieldCheck className="w-4 h-4" />
-                <span>Verified</span>
+                <span>Valid Pass</span>
               </div>
             </div>
 
@@ -177,7 +295,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               </div>
             </div>
 
-            {/* Scannable QR Code Container with real dynamic QR code image */}
+            {/* Scannable QR Code Container (OPTION B: Real scannable verification URL!) */}
             <div className="p-4 rounded-2xl bg-white flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
               <div className="relative w-44 h-44 flex items-center justify-center bg-white rounded-xl">
                 {qrDataUrl ? (
@@ -209,7 +327,21 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               </div>
+
+              <p className="mt-1.5 text-[9px] text-zinc-500 font-mono text-center">
+                Scannable with any Camera or QR App • No personal data stored in QR
+              </p>
             </div>
+
+            {/* Download Ticket Pass Button (OPTION B Requirement) */}
+            <button
+              onClick={handleDownloadPass}
+              disabled={isDownloading}
+              className="w-full py-2.5 px-3 rounded-xl bg-[#1e2436] hover:bg-[#28324a] text-zinc-200 hover:text-white font-medium text-xs transition-colors cursor-pointer flex items-center justify-center gap-2 border border-white/10 active:scale-95"
+            >
+              <Download className="w-4 h-4 text-[#ff7a00]" />
+              <span>{isDownloading ? 'Preparing Ticket PNG...' : 'Download Gate Pass (PNG)'}</span>
+            </button>
 
             {/* Barcode Strip */}
             <div className="border-t border-dashed border-zinc-700 pt-3 text-center">
@@ -229,7 +361,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
           </div>
         </div>
 
-        {/* Bottom Actions Row with prominent Back to Dashboard button */}
+        {/* Bottom Actions Row */}
         <div className="p-4 bg-[#0d1017] border-t border-white/5 flex flex-col sm:flex-row gap-2.5">
           <button
             onClick={onClose}

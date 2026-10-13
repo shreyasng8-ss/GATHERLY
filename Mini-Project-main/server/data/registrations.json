@@ -91,5 +91,43 @@
     "seatPass": "Zone A-Gate Pass",
     "registeredAt": "2026-10-13T19:56:11.926Z",
     "status": "Confirmed"
+  },
+  {
+    "id": "reg-1791924060854-zr32",
+    "eventId": "evt-1791924060846-d0ep",
+    "studentId": "STU-ALPHA-001",
+    "studentName": "Alice Gatekeeper",
+    "studentEmail": "alice@gate.campus.edu",
+    "studentPhone": "+1-555-0199",
+    "rollNumber": "CS26-001",
+    "department": "Cybersecurity",
+    "yearOfStudy": "Year 3",
+    "collegeName": "Campus Institute of Technology",
+    "ticketId": "TKT-EVT1791924060846D0EP-KSFJDB",
+    "seatPass": "General Admission",
+    "registeredAt": "2026-10-13T20:41:00.854Z",
+    "status": "Attended",
+    "checkedIn": true,
+    "checkedInAt": "2026-10-13T20:41:00.864Z",
+    "checkedInBy": "North Gate Turnstile"
+  },
+  {
+    "id": "reg-1791924060858-ggw4",
+    "eventId": "evt-1791924060850-492w",
+    "studentId": "STU-BETA-002",
+    "studentName": "Bob Crosswire",
+    "studentEmail": "bob@design.campus.edu",
+    "studentPhone": "+1-555-0288",
+    "rollNumber": "DS26-002",
+    "department": "Interaction Design",
+    "yearOfStudy": "Year 2",
+    "collegeName": "Campus Institute of Technology",
+    "ticketId": "TKT-EVT1791924060850492W-5OKUO1",
+    "seatPass": "General Admission",
+    "registeredAt": "2026-10-13T20:41:00.858Z",
+    "status": "Attended",
+    "checkedIn": true,
+    "checkedInAt": "2026-10-13T20:41:00.889Z",
+    "checkedInBy": "In-App Camera Scanner Lead"
   }
 ]

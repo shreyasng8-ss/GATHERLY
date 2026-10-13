@@ -26,6 +26,8 @@ import { SettingsScreen } from './components/screens/SettingsScreen';
 import { TicketModal } from './components/modals/TicketModal';
 import { EventDetailsModal } from './components/modals/EventDetailsModal';
 import { EventRegistrationModal } from './components/modals/EventRegistrationModal';
+import { OrganizerScannerModal } from './components/modals/OrganizerScannerModal';
+import { TicketVerificationScreen } from './components/screens/TicketVerificationScreen';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('login');
@@ -55,6 +57,10 @@ export default function App() {
   // Event Registration Modal State
   const [registerModalEvent, setRegisterModalEvent] = useState<EventItem | null>(null);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+
+  // Live QR Attendance Scanner Modal State
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scannerInitialEventId, setScannerInitialEventId] = useState<string | undefined>(undefined);
 
   // Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -130,6 +136,16 @@ export default function App() {
   useEffect(() => {
     refreshEvents();
     refreshTasks();
+
+    // Handle deep-link or QR code scan URL: /verify?ticket=... or ?ticket=...
+    if (typeof window !== 'undefined' && window.location) {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlTicket = searchParams.get('ticket') || searchParams.get('t') || searchParams.get('id');
+      const isVerifyRoute = window.location.pathname.includes('/verify');
+      if (urlTicket || isVerifyRoute) {
+        setCurrentScreen('verify-ticket');
+      }
+    }
   }, [refreshEvents, refreshTasks]);
 
   const handleResetData = () => {
@@ -316,7 +332,11 @@ export default function App() {
         currentScreen={currentScreen}
         onSelectScreen={(screen) => {
           if (screen !== 'create-event') setEditingEvent(null);
-          setCurrentScreen(screen);
+          if (screen === 'ticket-scanner') {
+            setIsScannerOpen(true);
+          } else {
+            setCurrentScreen(screen);
+          }
         }}
         viewMode={viewMode}
         onToggleViewMode={(mode) => setViewMode(mode)}
@@ -336,7 +356,13 @@ export default function App() {
           <OrganizerDashboardScreen
             events={events}
             notifications={organizerNotifs}
-            onNavigate={(screen) => setCurrentScreen(screen)}
+            onNavigate={(screen) => {
+              if (screen === 'ticket-scanner') {
+                setIsScannerOpen(true);
+              } else {
+                setCurrentScreen(screen);
+              }
+            }}
             onMarkAllRead={handleMarkAllRead}
             onSelectEvent={(evt) => {
               setEditingEvent(evt);
@@ -344,6 +370,10 @@ export default function App() {
             }}
             onDeleteEvent={handleDeleteEvent}
             onShowToast={showToast}
+            onOpenScanner={(eventId) => {
+              setScannerInitialEventId(eventId);
+              setIsScannerOpen(true);
+            }}
           />
         )}
 
@@ -399,7 +429,25 @@ export default function App() {
             onShowToast={showToast}
           />
         )}
+
+        {(currentScreen === 'verify-ticket' || currentScreen === 'ticket-scanner') && (
+          <TicketVerificationScreen
+            isOrganizer={true}
+            onNavigate={(screen) => setCurrentScreen(screen)}
+            onShowToast={showToast}
+          />
+        )}
       </DeviceFrame>
+
+      {/* Live Organizer QR & Attendance Scanner Modal */}
+      <OrganizerScannerModal
+        events={events}
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onShowToast={showToast}
+        initialEventId={scannerInitialEventId}
+        onCheckInSuccess={() => refreshEvents(true)}
+      />
 
       {/* Dynamic Digital Gate Pass Ticket Modal */}
       <TicketModal

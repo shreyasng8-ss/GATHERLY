@@ -5,7 +5,9 @@ export type ScreenId =
   | 'create-event'
   | 'team-tasks'
   | 'org-setup'
-  | 'settings';
+  | 'settings'
+  | 'ticket-scanner'
+  | 'verify-ticket';
 
 export interface EventItem {
   id: string;
@@ -91,6 +93,9 @@ export interface RegistrationRecord {
   seatPass?: string;
   registeredAt: string;
   status?: 'Confirmed' | 'Attended' | 'Cancelled';
+  checkedIn?: boolean;
+  checkedInAt?: string;
+  checkedInBy?: string;
 }
 
 export interface EventRegistrationPayload {
@@ -119,6 +124,9 @@ export interface TicketVerificationResponse {
   seatPass?: string;
   registeredAt?: string;
   status?: string;
+  checkedIn?: boolean;
+  checkedInAt?: string;
+  checkedInBy?: string;
   event?: {
     id: string;
     title: string;
@@ -132,3 +140,39 @@ export interface TicketVerificationResponse {
   message?: string;
   verifiedAt: string;
 }
+
+export interface CheckInResponse {
+  success: boolean;
+  status: 'checked_in' | 'already_checked_in' | 'wrong_event' | 'invalid_ticket' | 'unauthorized';
+  message: string;
+  ticketId?: string;
+  registrationId?: string;
+  studentId?: string;
+  studentName?: string;
+  rollNumber?: string;
+  department?: string;
+  yearOfStudy?: string;
+  seatPass?: string;
+  checkedInAt?: string;
+  originalCheckedInAt?: string;
+  event?: {
+    id: string;
+    title: string;
+    category?: string;
+    date?: string;
+    time?: string;
+    venue?: string;
+  };
+  expectedEvent?: {
+    id: string;
+    title: string;
+  };
+  actualEvent?: {
+    id: string;
+    title: string;
+    date?: string;
+    venue?: string;
+  };
+  error?: string;
+}
+

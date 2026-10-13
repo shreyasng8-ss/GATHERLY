@@ -3,7 +3,8 @@ import {
   RegistrationRecord,
   EventRegistrationPayload,
   TicketVerificationResponse,
-  TaskItem
+  TaskItem,
+  CheckInResponse
 } from '../types';
 
 /**
@@ -178,6 +179,37 @@ export const api = {
   async verifyTicket(ticketId: string): Promise<TicketVerificationResponse> {
     const res = await safeFetch(`${API_BASE_URL}/tickets/${encodeURIComponent(ticketId)}/verify`);
     return handleResponse<TicketVerificationResponse>(res);
+  },
+
+  // 10. POST /api/tickets/:ticketId/check-in - Check in attendee
+  async checkInTicket(
+    ticketId: string,
+    options?: { eventId?: string; role?: string; organizerName?: string }
+  ): Promise<CheckInResponse> {
+    const res = await safeFetch(`${API_BASE_URL}/tickets/${encodeURIComponent(ticketId)}/check-in`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-organizer-role': 'organizer'
+      },
+      body: JSON.stringify({
+        eventId: options?.eventId,
+        role: options?.role || 'organizer',
+        organizerName: options?.organizerName
+      })
+    });
+
+    const isJson = res.headers.get('content-type')?.includes('application/json');
+    const data = isJson ? await res.json() : null;
+
+    if (!res.ok) {
+      if (data && data.status) {
+        return data as CheckInResponse;
+      }
+      throw new ApiError(data?.message || `Check-in failed with status ${res.status}`, res.status);
+    }
+
+    return data as CheckInResponse;
   },
 
   // 10. Tasks Persistence

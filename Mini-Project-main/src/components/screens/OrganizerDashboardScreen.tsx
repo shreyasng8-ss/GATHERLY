@@ -18,6 +18,8 @@ import {
   User,
   ExternalLink,
   ChevronRight,
+  QrCode,
+  Scan,
 } from 'lucide-react';
 
 interface OrganizerDashboardProps {
@@ -28,6 +30,7 @@ interface OrganizerDashboardProps {
   onSelectEvent: (event: EventItem) => void;
   onShowToast: (message: string) => void;
   onDeleteEvent?: (eventId: string) => void;
+  onOpenScanner?: (eventId?: string) => void;
 }
 
 export const OrganizerDashboardScreen: React.FC<OrganizerDashboardProps> = ({
@@ -38,6 +41,7 @@ export const OrganizerDashboardScreen: React.FC<OrganizerDashboardProps> = ({
   onSelectEvent,
   onShowToast,
   onDeleteEvent,
+  onOpenScanner,
 }) => {
   const [showAllEvents, setShowAllEvents] = React.useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -209,6 +213,33 @@ export const OrganizerDashboardScreen: React.FC<OrganizerDashboardProps> = ({
           </div>
         </div>
 
+        {/* Gate Pass & Attendance Scanner Banner */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0c1a1d] to-[#111a1c] border border-[#00f2ff]/30 shadow-[0_0_20px_rgba(0,242,255,0.06)] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#00f2ff]/10 border border-[#00f2ff]/30 flex items-center justify-center text-[#00f2ff] shrink-0 shadow-[0_0_12px_rgba(0,242,255,0.2)]">
+              <QrCode className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-white">Gate Pass Scanner</h3>
+                <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  Live
+                </span>
+              </div>
+              <p className="text-[11px] text-[#8ca0a3] mt-0.5">
+                Scan attendee QR passes via camera, external scanner, or manual ID
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onOpenScanner?.()}
+            className="px-3 py-2 rounded-xl bg-[#00f2ff] hover:bg-[#3bf5ff] text-black text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,242,255,0.35)] transition-all cursor-pointer"
+          >
+            <Scan className="w-4 h-4" />
+            <span>Scan Passes</span>
+          </button>
+        </div>
+
         {/* My Active Events Section */}
         <div>
           <div className="flex items-center justify-between mb-3">
@@ -281,6 +312,14 @@ export const OrganizerDashboardScreen: React.FC<OrganizerDashboardProps> = ({
                     </span>
 
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => onOpenScanner?.(item.id)}
+                        className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#00f2ff]/10 text-[#00f2ff] hover:bg-[#00f2ff]/20 border border-[#00f2ff]/30 transition-colors cursor-pointer flex items-center gap-1"
+                        title="Scan Gate Passes for this event"
+                      >
+                        <QrCode className="w-3.5 h-3.5" />
+                        <span>Scan</span>
+                      </button>
                       <button
                         onClick={() => {
                           onSelectEvent(item);

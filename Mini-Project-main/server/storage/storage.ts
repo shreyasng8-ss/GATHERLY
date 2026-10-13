@@ -5,7 +5,8 @@ import {
   EventItem,
   RegistrationRecord,
   TaskItem,
-  TicketVerificationResponse
+  TicketVerificationResponse,
+  CheckInResponse
 } from '../../src/types';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -653,7 +654,19 @@ export class StorageService {
         this.readRegistrationsRaw()
       ]);
 
-      const cleanQuery = ticketId.trim().toLowerCase();
+      let cleanQuery = ticketId.trim();
+      // Handle URL format if passed
+      if (cleanQuery.includes('ticket=')) {
+        try {
+          const u = new URL(cleanQuery, 'http://dummy.com');
+          const tParam = u.searchParams.get('ticket');
+          if (tParam) cleanQuery = tParam.trim();
+        } catch {
+          const match = cleanQuery.match(/ticket=([^&]+)/);
+          if (match) cleanQuery = decodeURIComponent(match[1]).trim();
+        }
+      }
+      cleanQuery = cleanQuery.replace(/^["']|["']$/g, '').toLowerCase();
 
       const reg = registrations.find(
         (r) =>
@@ -685,7 +698,10 @@ export class StorageService {
         yearOfStudy: reg.yearOfStudy,
         seatPass: reg.seatPass,
         registeredAt: reg.registeredAt,
-        status: reg.status || 'Confirmed',
+        status: reg.status || (reg.checkedIn ? 'Attended' : 'Confirmed'),
+        checkedIn: Boolean(reg.checkedIn),
+        checkedInAt: reg.checkedInAt,
+        checkedInBy: reg.checkedInBy,
         event: event
           ? {
               id: event.id,
@@ -697,8 +713,166 @@ export class StorageService {
               organizer: event.organizer
             }
           : undefined,
-        message: 'Gate pass successfully verified and approved for entry.',
+        message: reg.checkedIn
+          ? `Gate pass is valid and was checked in at ${reg.checkedInAt ? new Date(reg.checkedInAt).toLocaleTimeString() : 'an earlier time'}.`
+          : 'Gate pass successfully verified and approved for entry.',
         verifiedAt: new Date().toISOString()
+      };
+    });
+  }
+
+  async checkInTicket(
+    ticketOrCode: string,
+    options?: {
+      expectedEventId?: string;
+      checkedInBy?: string;
+      isOrganizer?: boolean;
+    }
+  ): Promise<CheckInResponse> {
+    return withLock(async () => {
+      // 1. Organizer authorization check
+      if (options?.isOrganizer === false) {
+        return {
+          success: false,
+          status: 'unauthorized',
+          message: 'Unauthorized: Only event organizers are permitted to check in attendees.',
+          error: 'Unauthorized'
+        };
+      }
+
+      const [events, registrations] = await Promise.all([
+        this.readEventsRaw(),
+        this.readRegistrationsRaw()
+      ]);
+
+      // Normalize ticket code or full verification URL from QR scanner
+      let cleanQuery = (ticketOrCode || '').trim();
+      if (cleanQuery.includes('ticket=')) {
+        try {
+          const u = new URL(cleanQuery, 'http://dummy.com');
+          const tParam = u.searchParams.get('ticket');
+          if (tParam) cleanQuery = tParam.trim();
+        } catch {
+          const match = cleanQuery.match(/ticket=([^&]+)/);
+          if (match) cleanQuery = decodeURIComponent(match[1]).trim();
+        }
+      }
+
+      cleanQuery = cleanQuery.replace(/^["']|["']$/g, '').trim().toLowerCase();
+
+      // 2. Locate registration record
+      const regIndex = registrations.findIndex(
+        (r) =>
+          (r.ticketId && r.ticketId.toLowerCase() === cleanQuery) ||
+          r.id.toLowerCase() === cleanQuery
+      );
+
+      if (regIndex === -1) {
+        return {
+          success: false,
+          status: 'invalid_ticket',
+          ticketId: ticketOrCode,
+          message: `Ticket identifier '${ticketOrCode}' is not recognized in the registration records.`,
+          error: 'Invalid Ticket'
+        };
+      }
+
+      const reg = registrations[regIndex];
+      const actualEvent = events.find((e) => e.id === reg.eventId);
+
+      // 3. Verify event matching if checking in for a specific event
+      if (options?.expectedEventId && reg.eventId !== options.expectedEventId) {
+        const expectedEvent = events.find((e) => e.id === options.expectedEventId);
+        return {
+          success: false,
+          status: 'wrong_event',
+          ticketId: reg.ticketId,
+          registrationId: reg.id,
+          studentName: reg.studentName,
+          rollNumber: reg.rollNumber,
+          department: reg.department,
+          seatPass: reg.seatPass,
+          actualEvent: actualEvent
+            ? {
+                id: actualEvent.id,
+                title: actualEvent.title,
+                date: actualEvent.date,
+                venue: actualEvent.venue
+              }
+            : undefined,
+          expectedEvent: expectedEvent
+            ? {
+                id: expectedEvent.id,
+                title: expectedEvent.title
+              }
+            : undefined,
+          message: `This ticket belongs to "${actualEvent?.title || reg.eventId}", not "${expectedEvent?.title || options.expectedEventId}".`,
+          error: 'Wrong Event'
+        };
+      }
+
+      // 4. Prevent duplicate check-in
+      if (reg.checkedIn) {
+        return {
+          success: false,
+          status: 'already_checked_in',
+          ticketId: reg.ticketId,
+          registrationId: reg.id,
+          studentName: reg.studentName,
+          rollNumber: reg.rollNumber,
+          department: reg.department,
+          seatPass: reg.seatPass,
+          checkedInAt: reg.checkedInAt,
+          originalCheckedInAt: reg.checkedInAt,
+          event: actualEvent
+            ? {
+                id: actualEvent.id,
+                title: actualEvent.title,
+                venue: actualEvent.venue,
+                date: actualEvent.date
+              }
+            : undefined,
+          message: `Attendee ${reg.studentName} was ALREADY checked in at ${reg.checkedInAt ? new Date(reg.checkedInAt).toLocaleTimeString() : 'earlier'}. Duplicate entry rejected!`,
+          error: 'Duplicate Check-In'
+        };
+      }
+
+      // 5. Successful check-in mutation
+      const checkInTimestamp = new Date().toISOString();
+      const updatedReg: RegistrationRecord = {
+        ...reg,
+        checkedIn: true,
+        checkedInAt: checkInTimestamp,
+        checkedInBy: options?.checkedInBy || 'Organizer Check-In Station',
+        status: 'Attended'
+      };
+
+      registrations[regIndex] = updatedReg;
+      await this.writeRegistrationsRaw(registrations);
+
+      return {
+        success: true,
+        status: 'checked_in',
+        ticketId: updatedReg.ticketId,
+        registrationId: updatedReg.id,
+        studentId: updatedReg.studentId,
+        studentName: updatedReg.studentName,
+        rollNumber: updatedReg.rollNumber,
+        department: updatedReg.department,
+        yearOfStudy: updatedReg.yearOfStudy,
+        seatPass: updatedReg.seatPass,
+        checkedInAt: checkInTimestamp,
+        event: actualEvent
+          ? {
+              id: actualEvent.id,
+              title: actualEvent.title,
+              category: actualEvent.category,
+              date: actualEvent.date,
+              time: actualEvent.time,
+              venue: actualEvent.venue
+            }
+          : undefined,
+        message: `Check-in confirmed for ${updatedReg.studentName}! Gate entry authorized.`
       };
     });
   }

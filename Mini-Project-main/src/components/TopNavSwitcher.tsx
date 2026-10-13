@@ -20,6 +20,7 @@ const screens: { id: ScreenId; label: string; number: number }[] = [
   { id: 'team-tasks', label: 'Team & Tasks', number: 5 },
   { id: 'org-setup', label: 'Org Setup', number: 6 },
   { id: 'settings', label: 'Settings', number: 7 },
+  { id: 'ticket-scanner', label: 'Gate Scanner', number: 8 },
 ];
 
 export const TopNavSwitcher: React.FC<TopNavSwitcherProps> = ({

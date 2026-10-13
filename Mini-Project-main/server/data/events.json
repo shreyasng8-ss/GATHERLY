@@ -1,5 +1,49 @@
 [
   {
+    "id": "evt-1791924060850-492w",
+    "title": "Design Systems Expo 2026",
+    "category": "Design Sprint",
+    "type": "Design Sprint",
+    "status": "Upcoming",
+    "date": "Nov 16, 2026",
+    "time": "2:00 PM",
+    "venue": "Studio Beta",
+    "capacity": 50,
+    "registeredCount": 0,
+    "image": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80",
+    "description": "",
+    "eligibleYears": [
+      "Freshman",
+      "Sophomore",
+      "Junior",
+      "Senior"
+    ],
+    "seatPass": "General Admission",
+    "organizer": "UI/UX Guild"
+  },
+  {
+    "id": "evt-1791924060846-d0ep",
+    "title": "Cybersecurity Gate Pass Summit 2026",
+    "category": "Tech Workshop",
+    "type": "Tech Workshop",
+    "status": "Upcoming",
+    "date": "Nov 15, 2026",
+    "time": "10:00 AM",
+    "venue": "Engineering Hall Alpha",
+    "capacity": 100,
+    "registeredCount": 0,
+    "image": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80",
+    "description": "",
+    "eligibleYears": [
+      "Freshman",
+      "Sophomore",
+      "Junior",
+      "Senior"
+    ],
+    "seatPass": "General Admission",
+    "organizer": "GDSC Security Chapter"
+  },
+  {
     "id": "evt-1791909249851-hr07",
     "title": "ai hackathon",
     "category": "Hackathon",
