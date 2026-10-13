@@ -1,0 +1,88 @@
+[
+  {
+    "id": "evt-1791901717877-yheu",
+    "title": "AI Agents & LLM Hackathon 2024",
+    "category": "Hackathon",
+    "type": "Hackathon",
+    "status": "Upcoming",
+    "date": "Nov 12 • 9:00 AM",
+    "time": "9:00 AM - 9:00 PM",
+    "venue": "Computer Science Auditorium Room 101",
+    "capacity": 60,
+    "registeredCount": 0,
+    "image": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80",
+    "description": "Build autonomous agent workflows with DeepMind and open source AI toolkits.",
+    "eligibleYears": [
+      "Junior",
+      "Senior"
+    ],
+    "seatPass": "General Admission",
+    "organizer": "AI Student Society"
+  },
+  {
+    "id": "evt-1",
+    "title": "Intro to Web3 & Smart Contracts",
+    "category": "Tech Workshop",
+    "type": "Tech Workshop",
+    "status": "Active",
+    "date": "Oct 24 • 5:00 PM",
+    "time": "5:00 PM - 7:30 PM",
+    "venue": "Innovation Center, Room 204",
+    "registeredCount": 3,
+    "capacity": 150,
+    "image": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80",
+    "description": "Hands-on session on Ethereum development, Solidity bytecode primitives, and smart contract security best practices.",
+    "eligibleYears": [
+      "Freshman",
+      "Sophomore",
+      "Junior",
+      "Senior"
+    ],
+    "seatPass": "Zone B-14",
+    "organizer": "GDSC Web3 Chapter",
+    "registrationLink": "https://gatherly.campus.edu/rsvp/web3-smart-contracts"
+  },
+  {
+    "id": "evt-2",
+    "title": "Campus Hack 2024 Prep",
+    "category": "Hackathon",
+    "type": "Hackathon",
+    "status": "Upcoming",
+    "date": "Oct 28 • 10:00 AM",
+    "time": "10:00 AM - 4:00 PM",
+    "venue": "Main Library, Collaborative Space",
+    "registeredCount": 2,
+    "capacity": 100,
+    "image": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=800&q=80",
+    "description": "Form teams, pitch technical project themes, and review the hackathon API sponsor challenges before the main marathon.",
+    "eligibleYears": [
+      "Sophomore",
+      "Junior",
+      "Senior"
+    ],
+    "seatPass": "Zone A-08",
+    "organizer": "Hackathon Organizing Committee",
+    "registrationLink": "https://gatherly.campus.edu/rsvp/campushack2024"
+  },
+  {
+    "id": "evt-3",
+    "title": "Spring Career Fair 2024",
+    "category": "Academic",
+    "type": "Career",
+    "status": "Upcoming",
+    "date": "Oct 15, 2024 • 10:00 AM",
+    "time": "10:00 AM - 3:00 PM",
+    "venue": "Student Union Hall",
+    "registeredCount": 0,
+    "capacity": 500,
+    "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
+    "description": "Connect with top employers from across the country looking for bright minds in engineering, design, and management.",
+    "eligibleYears": [
+      "Freshman",
+      "Sophomore"
+    ],
+    "seatPass": "Booth Hall Main",
+    "organizer": "University Career Services",
+    "registrationLink": "https://gatherly.campus.edu/rsvp/springfair2024"
+  }
+]

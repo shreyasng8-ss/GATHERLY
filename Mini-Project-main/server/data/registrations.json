@@ -1,0 +1,65 @@
+[
+  {
+    "id": "reg-seed-1",
+    "eventId": "evt-1",
+    "studentId": "#GTH-8821",
+    "studentName": "Alex Chen",
+    "studentEmail": "alex.chen@campus.edu",
+    "registeredAt": "2024-10-10T12:00:00.000Z",
+    "seatPass": "Zone B-14"
+  },
+  {
+    "id": "reg-seed-2",
+    "eventId": "evt-1",
+    "studentId": "#GTH-9102",
+    "studentName": "Sarah Jenkins",
+    "studentEmail": "sarah.j@campus.edu",
+    "registeredAt": "2024-10-11T14:15:00.000Z",
+    "seatPass": "Zone B-15"
+  },
+  {
+    "id": "reg-seed-3",
+    "eventId": "evt-1",
+    "studentId": "#GTH-7734",
+    "studentName": "Marcus Thorne",
+    "studentEmail": "marcus.t@campus.edu",
+    "registeredAt": "2024-10-11T16:45:00.000Z",
+    "seatPass": "Zone B-16"
+  },
+  {
+    "id": "reg-seed-4",
+    "eventId": "evt-2",
+    "studentId": "#GTH-8821",
+    "studentName": "Alex Chen",
+    "studentEmail": "alex.chen@campus.edu",
+    "registeredAt": "2024-10-12T09:30:00.000Z",
+    "seatPass": "Zone A-08"
+  },
+  {
+    "id": "reg-seed-5",
+    "eventId": "evt-2",
+    "studentId": "#GTH-8551",
+    "studentName": "Leo Kim",
+    "studentEmail": "leo.kim@campus.edu",
+    "registeredAt": "2024-10-12T11:00:00.000Z",
+    "seatPass": "Zone A-09"
+  },
+  {
+    "id": "reg-1791901717887-c8qa",
+    "eventId": "evt-1791901717877-yheu",
+    "studentId": "#GTH-8821",
+    "studentName": "Alex Chen",
+    "studentEmail": "alex.chen@campus.edu",
+    "registeredAt": "2026-10-13T14:28:37.887Z",
+    "seatPass": "Front Row A-01"
+  },
+  {
+    "id": "reg-1791901717896-nkij",
+    "eventId": "evt-1791901717877-yheu",
+    "studentId": "#GTH-9944",
+    "studentName": "Elena Rostova",
+    "studentEmail": "elena.r@campus.edu",
+    "registeredAt": "2026-10-13T14:28:37.896Z",
+    "seatPass": "General Admission"
+  }
+]

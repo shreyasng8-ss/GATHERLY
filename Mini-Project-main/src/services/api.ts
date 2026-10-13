@@ -1,0 +1,140 @@
+import { EventItem, RegistrationRecord } from '../types';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+
+export class ApiError extends Error {
+  status: number;
+  details?: string[];
+
+  constructor(message: string, status: number, details?: string[]) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.details = details;
+  }
+}
+
+async function handleResponse<T>(res: Response): Promise<T> {
+  const contentType = res.headers.get('content-type');
+  const isJson = contentType && contentType.includes('application/json');
+  const data = isJson ? await res.json() : null;
+
+  if (!res.ok) {
+    const errorMsg = data?.message || data?.error || `HTTP request failed with status ${res.status}`;
+    const details = data?.details;
+    throw new ApiError(errorMsg, res.status, details);
+  }
+
+  return data as T;
+}
+
+export const api = {
+  // 1. GET /api/events
+  async getEvents(filters?: { category?: string; search?: string }): Promise<EventItem[]> {
+    const params = new URLSearchParams();
+    if (filters?.category) params.append('category', filters.category);
+    if (filters?.search) params.append('search', filters.search);
+
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetch(`${API_BASE_URL}/events${queryString}`);
+    return handleResponse<EventItem[]>(res);
+  },
+
+  // 2. GET /api/events/:id
+  async getEventById(id: string): Promise<EventItem> {
+    const res = await fetch(`${API_BASE_URL}/events/${encodeURIComponent(id)}`);
+    return handleResponse<EventItem>(res);
+  },
+
+  // 3. POST /api/events
+  async createEvent(eventData: Partial<EventItem>): Promise<EventItem> {
+    const res = await fetch(`${API_BASE_URL}/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(eventData),
+    });
+    return handleResponse<EventItem>(res);
+  },
+
+  // 4. PUT /api/events/:id
+  async updateEvent(id: string, updates: Partial<EventItem>): Promise<EventItem> {
+    const res = await fetch(`${API_BASE_URL}/events/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    });
+    return handleResponse<EventItem>(res);
+  },
+
+  // 5. DELETE /api/events/:id
+  async deleteEvent(id: string): Promise<{ message: string; id: string; deletedRegistrationsCount?: number }> {
+    const res = await fetch(`${API_BASE_URL}/events/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+    return handleResponse<{ message: string; id: string; deletedRegistrationsCount?: number }>(res);
+  },
+
+  // 6. POST /api/events/:id/register
+  async registerForEvent(
+    eventId: string,
+    studentData: {
+      studentId: string;
+      studentName?: string;
+      studentEmail?: string;
+      seatPass?: string;
+    }
+  ): Promise<{
+    message: string;
+    registration: RegistrationRecord;
+    event: EventItem;
+  }> {
+    const res = await fetch(`${API_BASE_URL}/events/${encodeURIComponent(eventId)}/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(studentData),
+    });
+    return handleResponse<{
+      message: string;
+      registration: RegistrationRecord;
+      event: EventItem;
+    }>(res);
+  },
+
+  // 7. GET /api/events/:id/registrations
+  async getEventRegistrations(eventId: string): Promise<{
+    eventId: string;
+    eventTitle: string;
+    count: number;
+    capacity: number;
+    registrations: RegistrationRecord[];
+  }> {
+    const res = await fetch(`${API_BASE_URL}/events/${encodeURIComponent(eventId)}/registrations`);
+    return handleResponse<{
+      eventId: string;
+      eventTitle: string;
+      count: number;
+      capacity: number;
+      registrations: RegistrationRecord[];
+    }>(res);
+  },
+
+  // 8. GET /api/students/:studentId/registrations
+  async getStudentRegistrations(studentId: string): Promise<{
+    studentId: string;
+    count: number;
+    registrations: Array<{ registration: RegistrationRecord; event: EventItem }>;
+  }> {
+    const res = await fetch(`${API_BASE_URL}/students/${encodeURIComponent(studentId)}/registrations`);
+    return handleResponse<{
+      studentId: string;
+      count: number;
+      registrations: Array<{ registration: RegistrationRecord; event: EventItem }>;
+    }>(res);
+  },
+};
