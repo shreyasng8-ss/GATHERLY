@@ -75,5 +75,21 @@
     "seatPass": "General Admission",
     "ticketId": "TKT-EVT-1791901717877-YHEU-FQUWKE",
     "status": "Confirmed"
+  },
+  {
+    "id": "reg-1791921371926-vgdp",
+    "eventId": "evt-1791909249851-hr07",
+    "studentId": "GTH-VERIFY-1919",
+    "studentName": "Jordan Lee",
+    "studentEmail": "jordan.lee@campus.edu",
+    "studentPhone": "+1 (555) 321-7654",
+    "rollNumber": "GTH-VERIFY-1919",
+    "department": "Computer Science & Engineering",
+    "yearOfStudy": "Senior (Year 4)",
+    "collegeName": "Campus Institute of Technology",
+    "ticketId": "TKT-EVT1791909249851HR07-A5U0OW",
+    "seatPass": "Zone A-Gate Pass",
+    "registeredAt": "2026-10-13T19:56:11.926Z",
+    "status": "Confirmed"
   }
 ]
