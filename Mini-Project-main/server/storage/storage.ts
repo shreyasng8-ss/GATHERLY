@@ -10,7 +10,7 @@ import {
   ClubItem,
   ClubMembership
 } from '../../src/types';
-import { selectEventImage } from '../utils/eventImageSelector';
+import { selectEventImage, FALLBACK_EVENT_IMAGE } from '../utils/eventImageSelector';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -370,6 +370,29 @@ export class StorageService {
     if (!fs.existsSync(EVENTS_FILE)) {
       await safeWriteJson(EVENTS_FILE, SEED_EVENTS);
       console.log('[Storage] Initialized events.json with seed events.');
+    } else {
+      // Correct any legacy building images in existing events
+      const existingEvents = await safeReadJson<EventItem[]>(EVENTS_FILE, []);
+      let eventsUpdated = false;
+      for (const evt of existingEvents) {
+        if (
+          !evt.image ||
+          evt.image.includes('1541339907198') ||
+          evt.image.includes('1567157577867')
+        ) {
+          evt.image = selectEventImage({
+            title: evt.title,
+            category: evt.category,
+            type: evt.type,
+            description: evt.description
+          });
+          eventsUpdated = true;
+        }
+      }
+      if (eventsUpdated) {
+        await safeWriteJson(EVENTS_FILE, existingEvents);
+        console.log('[Storage] Repaired legacy building event images in events.json.');
+      }
     }
 
     // Initialize registrations if file does not exist or is empty
@@ -464,15 +487,20 @@ export class StorageService {
   // Calculate actual registration counts and apply sensible image fallback
   private enrichEventWithCounts(event: EventItem, registrations: RegistrationRecord[]): EventItem {
     const eventRegistrations = registrations.filter((r) => r.eventId === event.id);
-    const validImage =
-      event.image && event.image.trim().length > 0 && !event.image.includes('placeholder')
-        ? event.image
-        : selectEventImage({
-            title: event.title,
-            category: event.category,
-            type: event.type,
-            description: event.description
-          });
+    const isLegacyBuilding =
+      !event.image ||
+      event.image.trim().length === 0 ||
+      event.image.includes('1541339907198') ||
+      event.image.includes('1567157577867');
+
+    const validImage = isLegacyBuilding
+      ? selectEventImage({
+          title: event.title,
+          category: event.category,
+          type: event.type,
+          description: event.description
+        })
+      : event.image;
 
     return {
       ...event,
@@ -535,18 +563,23 @@ export class StorageService {
       const events = await this.readEventsRaw();
 
       const newId = `evt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-      const selectedImage =
+      const isCustomExplicitImage = Boolean(
         eventData.image &&
         eventData.image.trim().length > 0 &&
-        eventData.image !==
-          'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80'
-          ? eventData.image.trim()
-          : selectEventImage({
-              title: eventData.title,
-              category: eventData.category,
-              type: eventData.type,
-              description: eventData.description
-            });
+        eventData.image !== FALLBACK_EVENT_IMAGE &&
+        !eventData.image.includes('placeholder') &&
+        !eventData.image.includes('1541339907198') &&
+        !eventData.image.includes('1567157577867')
+      );
+
+      const selectedImage = isCustomExplicitImage && eventData.image
+        ? eventData.image.trim()
+        : selectEventImage({
+            title: eventData.title,
+            category: eventData.category,
+            type: eventData.type,
+            description: eventData.description
+          });
 
       const newEvent: EventItem = {
         id: newId,

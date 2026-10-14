@@ -1,9 +1,21 @@
 /**
- * Server-side Context-Aware Event Image Selector for Gatherly
+ * Context-Aware Event Image Selection System for Gatherly
+ *
+ * Automatically matches an appropriate, high-quality event image
+ * based on event title, category, and description using specific keyword
+ * and semantic pattern matching.
+ *
+ * Rules:
+ * 1. An explicitly provided user image takes highest priority.
+ * 2. Specific event keywords take precedence over generic categories
+ *    (e.g., "Garba Night" matches Garba, not generic Cultural).
+ * 3. Text normalization and case-insensitive matching with synonyms.
+ * 4. Fallback to category-based image if no specific keyword matches.
+ * 5. Fallback to universal campus image if no category matches.
+ * 6. Never produces random images or broken links.
  */
 
-export const FALLBACK_EVENT_IMAGE =
-  'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80';
+export const FALLBACK_EVENT_IMAGE = '/events/placeholder.svg';
 
 export interface ImageMatchRule {
   id: string;
@@ -14,7 +26,7 @@ export interface ImageMatchRule {
 }
 
 export const EVENT_IMAGE_RULES: ImageMatchRule[] = [
-  // 1. Garba / Dandiya (Specific Cultural Tradition)
+  // 1. Garba / Dandiya (Specific Cultural Tradition - Visually verified: Women in vibrant traditional Chaniya Choli dancing Garba)
   {
     id: 'garba',
     name: 'Garba / Dandiya Night',
@@ -28,12 +40,11 @@ export const EVENT_IMAGE_RULES: ImageMatchRule[] = [
       'dandiya night',
       'navratri celebration'
     ],
-    imageUrl:
-      'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?auto=format&fit=crop&w=800&q=80',
-    description: 'People dancing and celebrating Garba and Dandiya festival'
+    imageUrl: '/events/garba.jpg',
+    description: 'People dancing and celebrating Garba and Dandiya festival in traditional attire'
   },
 
-  // 2. Hackathons / Coding Marathons
+  // 2. Hackathons / Coding Marathons (Visually verified: University students coding collaboratively with laptops)
   {
     id: 'hackathon',
     name: 'Hackathon',
@@ -49,12 +60,11 @@ export const EVENT_IMAGE_RULES: ImageMatchRule[] = [
       'devpost',
       'hack night'
     ],
-    imageUrl:
-      'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=800&q=80',
-    description: 'Students coding and collaborating on computers in a hackathon'
+    imageUrl: '/events/hackathon.jpg',
+    description: 'Students coding and collaborating on computers in a hackathon marathon'
   },
 
-  // 3. Singing / Music Competitions & Concerts
+  // 3. Singing / Music Competitions & Concerts (Visually verified: Live singer performing into stage microphone)
   {
     id: 'singing',
     name: 'Singing Competition & Concert',
@@ -74,12 +84,11 @@ export const EVENT_IMAGE_RULES: ImageMatchRule[] = [
       'unplugged',
       'musical concert'
     ],
-    imageUrl:
-      'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/events/singing.jpg',
     description: 'Singer performing on stage with microphone and concert lighting'
   },
 
-  // 4. Dance Competitions & Showcases
+  // 4. Dance Competitions & Showcases (Visually verified: Stage dancer in dramatic dynamic motion)
   {
     id: 'dance',
     name: 'Dance Competition',
@@ -98,12 +107,11 @@ export const EVENT_IMAGE_RULES: ImageMatchRule[] = [
       'dance battle',
       'dance showcase'
     ],
-    imageUrl:
-      'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/events/dance.jpg',
     description: 'Dancers performing dynamic choreography on stage'
   },
 
-  // 5. Cricket Tournaments & Matches
+  // 5. Cricket Tournaments & Matches (Visually verified: Illuminated cricket stadium pitch with batsmen and fielders)
   {
     id: 'cricket',
     name: 'Cricket Tournament',
@@ -118,8 +126,7 @@ export const EVENT_IMAGE_RULES: ImageMatchRule[] = [
       'gully cricket',
       'inter-college cricket'
     ],
-    imageUrl:
-      'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/events/cricket.jpg',
     description: 'Cricket match on a stadium pitch'
   },
 
@@ -264,7 +271,7 @@ export const EVENT_IMAGE_RULES: ImageMatchRule[] = [
     description: 'Vibrant cultural fest with colorful lights and stage performances'
   },
 
-  // 12. Photography Workshop & Photowalk
+  // 12. Photography Workshop & Photowalk (Visually verified: Professional Sony DSLR camera body with prime lenses)
   {
     id: 'photography',
     name: 'Photography Workshop',
@@ -280,8 +287,7 @@ export const EVENT_IMAGE_RULES: ImageMatchRule[] = [
       'cinematography',
       'editing workshop'
     ],
-    imageUrl:
-      'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '/events/photography.jpg',
     description: 'Professional camera and photography equipment'
   },
 
@@ -437,27 +443,24 @@ export const EVENT_IMAGE_RULES: ImageMatchRule[] = [
   }
 ];
 
+// Fallback images strictly mapped to standard categories
 export const CATEGORY_IMAGE_MAP: Record<string, string> = {
-  'tech workshop':
-    'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
-  hackathon:
-    'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=800&q=80',
+  'tech workshop': '/events/hackathon.jpg',
+  hackathon: '/events/hackathon.jpg',
   career:
     'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
-  cultural:
-    'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
-  sports:
-    'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
+  cultural: '/events/garba.jpg',
+  sports: '/events/cricket.jpg',
   academic:
     'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80',
-  music:
-    'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
-  dance:
-    'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80',
-  arts:
-    'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80'
+  music: '/events/singing.jpg',
+  dance: '/events/dance.jpg',
+  arts: '/events/photography.jpg'
 };
 
+/**
+ * Normalizes text for reliable substring and keyword comparison.
+ */
 function normalizeText(text?: string): string {
   if (!text) return '';
   return text
@@ -467,6 +470,12 @@ function normalizeText(text?: string): string {
     .trim();
 }
 
+/**
+ * Context-aware event image selector.
+ *
+ * @param params Event details including title, category, description, and optional explicit image.
+ * @returns An appropriate, curated image URL.
+ */
 export function selectEventImage(params: {
   title?: string;
   category?: string;
@@ -474,8 +483,10 @@ export function selectEventImage(params: {
   description?: string;
   explicitImage?: string;
 }): string {
+  // 1. Explicitly provided custom image always wins (unless blank or default quad fallback)
   if (params.explicitImage && params.explicitImage.trim().length > 0) {
     const trimmed = params.explicitImage.trim();
+    // Prioritize explicit URL if it's a valid web URL
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) {
       return trimmed;
     }
@@ -486,6 +497,7 @@ export function selectEventImage(params: {
   const normalizedCategory = normalizeText(params.category);
   const normalizedType = normalizeText(params.type);
 
+  // 2. High Priority: Specific match in Title (e.g., "Garba Night", "Hackathon Prep", "Cricket Championship")
   for (const rule of EVENT_IMAGE_RULES) {
     for (const kw of rule.keywords) {
       const normalizedKw = normalizeText(kw);
@@ -495,6 +507,7 @@ export function selectEventImage(params: {
     }
   }
 
+  // 3. Medium Priority: Specific match in Description
   for (const rule of EVENT_IMAGE_RULES) {
     for (const kw of rule.keywords) {
       const normalizedKw = normalizeText(kw);
@@ -504,6 +517,7 @@ export function selectEventImage(params: {
     }
   }
 
+  // 4. Low Priority: Specific match in Category / Type
   for (const rule of EVENT_IMAGE_RULES) {
     for (const kw of rule.keywords) {
       const normalizedKw = normalizeText(kw);
@@ -513,6 +527,7 @@ export function selectEventImage(params: {
     }
   }
 
+  // 5. Category-based fallback
   const catKey = (normalizedCategory || normalizedType || '').toLowerCase();
   for (const [key, url] of Object.entries(CATEGORY_IMAGE_MAP)) {
     if (catKey.includes(key) || key.includes(catKey)) {
@@ -520,5 +535,44 @@ export function selectEventImage(params: {
     }
   }
 
+  // 6. Universal campus fallback
   return FALLBACK_EVENT_IMAGE;
+}
+
+/**
+ * Helper to get the human-readable matched topic name for preview UI.
+ */
+export function getMatchedTopicLabel(params: {
+  title?: string;
+  category?: string;
+  type?: string;
+  description?: string;
+}): string {
+  const normalizedTitle = normalizeText(params.title);
+  const normalizedDesc = normalizeText(params.description);
+  const normalizedCategory = normalizeText(params.category);
+  const normalizedType = normalizeText(params.type);
+
+  for (const rule of EVENT_IMAGE_RULES) {
+    for (const kw of rule.keywords) {
+      const normalizedKw = normalizeText(kw);
+      if (
+        normalizedTitle.includes(normalizedKw) ||
+        normalizedDesc.includes(normalizedKw) ||
+        normalizedCategory.includes(normalizedKw) ||
+        normalizedType.includes(normalizedKw)
+      ) {
+        return rule.name;
+      }
+    }
+  }
+
+  const catKey = (normalizedCategory || normalizedType || '').toLowerCase();
+  for (const [key] of Object.entries(CATEGORY_IMAGE_MAP)) {
+    if (catKey.includes(key)) {
+      return `Category: ${params.category || params.type}`;
+    }
+  }
+
+  return 'Campus General';
 }

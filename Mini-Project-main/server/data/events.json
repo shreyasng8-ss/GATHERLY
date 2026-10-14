@@ -1,5 +1,27 @@
 [
   {
+    "id": "evt-1791956488840-liv6",
+    "title": "Garba Night",
+    "category": "Cultural",
+    "type": "Cultural",
+    "status": "Upcoming",
+    "date": "2026-10-20 • 7:00 PM",
+    "time": "7:00 PM - 11:00 PM",
+    "venue": "Campus Open Air Amphitheatre",
+    "capacity": 500,
+    "registeredCount": 0,
+    "image": "/events/garba.jpg",
+    "description": "Annual Dandiya and Garba celebration with live music, traditional attire, and food stalls.",
+    "eligibleYears": [
+      "Freshman",
+      "Sophomore",
+      "Junior",
+      "Senior"
+    ],
+    "seatPass": "General Admission",
+    "organizer": "Cultural Arts Committee"
+  },
+  {
     "id": "evt-1791924060850-492w",
     "title": "Design Systems Expo 2026",
     "category": "Design Sprint",
@@ -10,7 +32,7 @@
     "venue": "Studio Beta",
     "capacity": 50,
     "registeredCount": 0,
-    "image": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80",
+    "image": "/events/placeholder.svg",
     "description": "",
     "eligibleYears": [
       "Freshman",
@@ -32,7 +54,7 @@
     "venue": "Engineering Hall Alpha",
     "capacity": 100,
     "registeredCount": 0,
-    "image": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80",
     "description": "",
     "eligibleYears": [
       "Freshman",
@@ -96,7 +118,7 @@
     "venue": "Computer Science Auditorium Room 101",
     "capacity": 60,
     "registeredCount": 0,
-    "image": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80",
+    "image": "/events/hackathon.jpg",
     "description": "Build autonomous agent workflows with DeepMind and open source AI toolkits.",
     "eligibleYears": [
       "Junior",

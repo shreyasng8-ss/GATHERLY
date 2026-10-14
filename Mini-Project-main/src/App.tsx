@@ -30,6 +30,7 @@ import { OrganizerScannerModal } from './components/modals/OrganizerScannerModal
 import { TicketVerificationScreen } from './components/screens/TicketVerificationScreen';
 import { ClubsScreen } from './components/screens/ClubsScreen';
 import { NavigationDrawer } from './components/navigation/NavigationDrawer';
+import { selectEventImage, FALLBACK_EVENT_IMAGE } from './utils/eventImageSelector';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('login');
@@ -214,7 +215,15 @@ export default function App() {
         venue: newEventData.venue || 'Student Union Hall',
         registeredCount: 0,
         capacity: newEventData.capacity || 200,
-        image: newEventData.image || initialEvents[0].image,
+        image:
+          newEventData.image ||
+          selectEventImage({
+            title: newEventData.title,
+            category: newEventData.category,
+            type: newEventData.type,
+            description: newEventData.description
+          }) ||
+          FALLBACK_EVENT_IMAGE,
         description: newEventData.description || '',
         eligibleYears: newEventData.eligibleYears || ['Freshman'],
         seatPass: 'General Admission',

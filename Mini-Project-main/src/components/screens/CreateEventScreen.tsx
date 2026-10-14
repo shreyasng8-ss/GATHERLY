@@ -62,7 +62,13 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
   );
   // Custom image override state
   const [customImageUrl, setCustomImageUrl] = useState(
-    eventToEdit?.image && eventToEdit.image !== FALLBACK_EVENT_IMAGE ? eventToEdit.image : ''
+    eventToEdit?.image &&
+      eventToEdit.image !== FALLBACK_EVENT_IMAGE &&
+      !eventToEdit.image.includes('placeholder') &&
+      !eventToEdit.image.includes('1541339907198') &&
+      !eventToEdit.image.includes('1567157577867')
+      ? eventToEdit.image
+      : ''
   );
 
   // Compute context-aware image automatically based on event metadata

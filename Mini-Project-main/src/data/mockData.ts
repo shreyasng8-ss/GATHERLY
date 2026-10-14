@@ -1,6 +1,6 @@
-export const campusQuadImg = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80";
+export const campusQuadImg = "/events/placeholder.svg";
 export const lectureHallImg = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80";
-export const hackathonPrepImg = "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=800&q=80";
+export const hackathonPrepImg = "/events/hackathon.jpg";
 export const careerFairImg = "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80";
 import { EventItem, TeamMember, TaskItem, NotificationItem, StudentProfile } from '../types';
 

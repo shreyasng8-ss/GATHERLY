@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c171a"/>
+      <stop offset="50%" stop-color="#142429"/>
+      <stop offset="100%" stop-color="#080e10"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f2ff"/>
+      <stop offset="100%" stop-color="#0080ff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="40%">
+      <stop offset="0%" stop-color="#00f2ff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#00f2ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#bg)"/>
+  
+  <!-- Subtle Grid Pattern -->
+  <g stroke="rgba(0, 242, 255, 0.05)" stroke-width="1">
+    <line x1="100" y1="0" x2="100" y2="500"/>
+    <line x1="200" y1="0" x2="200" y2="500"/>
+    <line x1="300" y1="0" x2="300" y2="500"/>
+    <line x1="400" y1="0" x2="400" y2="500"/>
+    <line x1="500" y1="0" x2="500" y2="500"/>
+    <line x1="600" y1="0" x2="600" y2="500"/>
+    <line x1="700" y1="0" x2="700" y2="500"/>
+    <line x1="0" y1="100" x2="800" y2="100"/>
+    <line x1="0" y1="200" x2="800" y2="200"/>
+    <line x1="0" y1="300" x2="800" y2="300"/>
+    <line x1="0" y1="400" x2="800" y2="400"/>
+  </g>
+
+  <!-- Radial Glow Behind Icon -->
+  <circle cx="400" cy="210" r="180" fill="url(#glow)"/>
+
+  <!-- Branded Gatherly Calendar / Event Hologram Icon -->
+  <g transform="translate(350, 150)">
+    <!-- Calendar Body -->
+    <rect x="0" y="20" width="100" height="90" rx="16" fill="#162327" stroke="#00f2ff" stroke-width="3" stroke-opacity="0.8"/>
+    <!-- Calendar Header -->
+    <path d="M 0 36 Q 0 20 16 20 L 84 20 Q 100 20 100 36 L 100 45 L 0 45 Z" fill="#00f2ff" fill-opacity="0.2"/>
+    <!-- Calendar Rings -->
+    <rect x="22" y="8" width="8" height="22" rx="4" fill="#00f2ff"/>
+    <rect x="70" y="8" width="8" height="22" rx="4" fill="#00f2ff"/>
+    <!-- Sparkle / Star Icon inside Calendar -->
+    <path d="M 50 55 L 53 66 L 64 69 L 53 72 L 50 83 L 47 72 L 36 69 L 47 66 Z" fill="url(#cyanGrad)"/>
+    <!-- Digital Accent Dot -->
+    <circle cx="28" cy="69" r="3" fill="#00f2ff" fill-opacity="0.6"/>
+    <circle cx="72" cy="69" r="3" fill="#00f2ff" fill-opacity="0.6"/>
+  </g>
+
+  <!-- Typography -->
+  <text x="400" y="305" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="1">
+    GATHERLY CAMPUS EVENT
+  </text>
+  <text x="400" y="335" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="500" fill="#7d9ca3" text-anchor="middle" letter-spacing="0.5">
+    Official Campus Event &amp; Student Registration
+  </text>
+</svg>

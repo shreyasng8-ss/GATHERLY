@@ -1,11 +1,16 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { storage } from './storage/storage';
 import { eventsRouter } from './routes/events';
 import { studentsRouter } from './routes/students';
 import { ticketsRouter } from './routes/tickets';
 import { tasksRouter } from './routes/tasks';
 import { clubsRouter } from './routes/clubs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
@@ -60,6 +65,10 @@ app.get('/api/health', (_req: Request, res: Response) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Static asset serving for local event images & placeholders
+app.use('/events', express.static(path.join(__dirname, '../public/events')));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // API Routes
 app.use('/api/events', eventsRouter);
