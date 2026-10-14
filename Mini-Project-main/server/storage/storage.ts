@@ -6,8 +6,11 @@ import {
   RegistrationRecord,
   TaskItem,
   TicketVerificationResponse,
-  CheckInResponse
+  CheckInResponse,
+  ClubItem,
+  ClubMembership
 } from '../../src/types';
+import { selectEventImage } from '../utils/eventImageSelector';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +22,8 @@ const DATA_DIR = process.env.DATA_DIR
 const EVENTS_FILE = path.join(DATA_DIR, 'events.json');
 const REGISTRATIONS_FILE = path.join(DATA_DIR, 'registrations.json');
 const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
+const CLUBS_FILE = path.join(DATA_DIR, 'clubs.json');
+const CLUB_MEMBERSHIPS_FILE = path.join(DATA_DIR, 'club_memberships.json');
 
 // Memory lock to queue concurrent writes safely
 let writeLock = Promise.resolve();
@@ -243,6 +248,103 @@ const SEED_TASKS: TaskItem[] = [
   }
 ];
 
+const SEED_CLUBS: ClubItem[] = [
+  {
+    id: 'club-coding',
+    name: 'Coding Club',
+    category: 'Technology',
+    description: 'Hands-on coding sprints, competitive programming, open-source projects, and technical interview preparation.',
+    image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
+    memberCount: 142,
+    leadName: 'Sarah Jenkins',
+    meetingSchedule: 'Wednesdays • 6:00 PM',
+    tags: ['Coding', 'WebDev', 'Python', 'OpenSource']
+  },
+  {
+    id: 'club-cultural',
+    name: 'Cultural Club',
+    category: 'Cultural',
+    description: 'Celebrating campus diversity, traditional festivities, cultural nights, and festive celebrations throughout the academic year.',
+    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+    memberCount: 198,
+    leadName: 'Maya Patel',
+    meetingSchedule: 'Thursdays • 5:30 PM',
+    tags: ['Festivals', 'Heritage', 'Celebration', 'Traditions']
+  },
+  {
+    id: 'club-dance',
+    name: 'Dance Society',
+    category: 'Performing Arts',
+    description: 'Expressive choreography, hip-hop, contemporary, and classical dance routines for university showcases and state competitions.',
+    image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80',
+    memberCount: 86,
+    leadName: 'Elena Rostova',
+    meetingSchedule: 'Tuesdays & Fridays • 6:30 PM',
+    tags: ['Dance', 'Choreography', 'HipHop', 'Performance']
+  },
+  {
+    id: 'club-music',
+    name: 'Music Club',
+    category: 'Music',
+    description: 'A vibrant collective of vocalists, instrumentalists, and music producers hosting jam sessions, acoustic nights, and concerts.',
+    image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
+    memberCount: 115,
+    leadName: 'Marcus Vance',
+    meetingSchedule: 'Mondays • 6:00 PM',
+    tags: ['Acoustic', 'Vocals', 'Bands', 'JamSessions']
+  },
+  {
+    id: 'club-sports',
+    name: 'Sports Club',
+    category: 'Athletics',
+    description: 'Organizing inter-college cricket, football, basketball leagues, campus fitness marathons, and sports meets.',
+    image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
+    memberCount: 230,
+    leadName: 'Devin Taylor',
+    meetingSchedule: 'Saturdays • 8:00 AM',
+    tags: ['Cricket', 'Football', 'Basketball', 'Fitness']
+  },
+  {
+    id: 'club-photo',
+    name: 'Photography Club',
+    category: 'Creative Arts',
+    description: 'Visual storytelling, photowalks, camera technique masterclasses, and campus event documentation.',
+    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80',
+    memberCount: 74,
+    leadName: 'Aiden Scott',
+    meetingSchedule: 'Bi-weekly Sundays • 10:00 AM',
+    tags: ['Photography', 'Photowalk', 'Camera', 'VisualArts']
+  },
+  {
+    id: 'club-ecell',
+    name: 'Entrepreneurship Club',
+    category: 'Business',
+    description: 'Fostering student startup culture, venture pitch competitions, angel investor keynotes, and product incubation.',
+    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
+    memberCount: 95,
+    leadName: 'Priya Das',
+    meetingSchedule: 'Fridays • 5:00 PM',
+    tags: ['Startups', 'Pitch', 'Networking', 'Venture']
+  }
+];
+
+const SEED_CLUB_MEMBERSHIPS: ClubMembership[] = [
+  {
+    id: 'mem-1',
+    clubId: 'club-coding',
+    studentId: '#GTH-8821',
+    studentName: 'Alex Chen',
+    joinedAt: '2024-09-15T10:00:00.000Z'
+  },
+  {
+    id: 'mem-2',
+    clubId: 'club-cultural',
+    studentId: '#GTH-8821',
+    studentName: 'Alex Chen',
+    joinedAt: '2024-09-20T14:30:00.000Z'
+  }
+];
+
 export interface RegisterStudentData {
   studentId: string;
   studentName?: string;
@@ -299,6 +401,18 @@ export class StorageService {
       console.log('[Storage] Initialized tasks.json with seed tasks.');
     }
 
+    // Initialize clubs if file does not exist or is empty
+    if (!fs.existsSync(CLUBS_FILE)) {
+      await safeWriteJson(CLUBS_FILE, SEED_CLUBS);
+      console.log('[Storage] Initialized clubs.json with seed clubs.');
+    }
+
+    // Initialize club memberships if file does not exist or is empty
+    if (!fs.existsSync(CLUB_MEMBERSHIPS_FILE)) {
+      await safeWriteJson(CLUB_MEMBERSHIPS_FILE, SEED_CLUB_MEMBERSHIPS);
+      console.log('[Storage] Initialized club_memberships.json with seed memberships.');
+    }
+
     this.initialized = true;
   }
 
@@ -329,11 +443,40 @@ export class StorageService {
     await safeWriteJson(TASKS_FILE, tasks);
   }
 
-  // Calculate actual registration counts from stored registrations
+  private async readClubsRaw(): Promise<ClubItem[]> {
+    await this.init();
+    return safeReadJson<ClubItem[]>(CLUBS_FILE, []);
+  }
+
+  private async writeClubsRaw(clubs: ClubItem[]): Promise<void> {
+    await safeWriteJson(CLUBS_FILE, clubs);
+  }
+
+  private async readClubMembershipsRaw(): Promise<ClubMembership[]> {
+    await this.init();
+    return safeReadJson<ClubMembership[]>(CLUB_MEMBERSHIPS_FILE, []);
+  }
+
+  private async writeClubMembershipsRaw(memberships: ClubMembership[]): Promise<void> {
+    await safeWriteJson(CLUB_MEMBERSHIPS_FILE, memberships);
+  }
+
+  // Calculate actual registration counts and apply sensible image fallback
   private enrichEventWithCounts(event: EventItem, registrations: RegistrationRecord[]): EventItem {
     const eventRegistrations = registrations.filter((r) => r.eventId === event.id);
+    const validImage =
+      event.image && event.image.trim().length > 0 && !event.image.includes('placeholder')
+        ? event.image
+        : selectEventImage({
+            title: event.title,
+            category: event.category,
+            type: event.type,
+            description: event.description
+          });
+
     return {
       ...event,
+      image: validImage,
       registeredCount: eventRegistrations.length
     };
   }
@@ -392,6 +535,19 @@ export class StorageService {
       const events = await this.readEventsRaw();
 
       const newId = `evt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const selectedImage =
+        eventData.image &&
+        eventData.image.trim().length > 0 &&
+        eventData.image !==
+          'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80'
+          ? eventData.image.trim()
+          : selectEventImage({
+              title: eventData.title,
+              category: eventData.category,
+              type: eventData.type,
+              description: eventData.description
+            });
+
       const newEvent: EventItem = {
         id: newId,
         title: (eventData.title || '').trim(),
@@ -403,7 +559,7 @@ export class StorageService {
         venue: (eventData.venue || '').trim(),
         capacity: Number(eventData.capacity) || 100,
         registeredCount: 0,
-        image: eventData.image || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80',
+        image: selectedImage,
         description: (eventData.description || '').trim(),
         eligibleYears: Array.isArray(eventData.eligibleYears) && eventData.eligibleYears.length > 0
           ? eventData.eligibleYears
@@ -925,6 +1081,237 @@ export class StorageService {
       tasks.splice(idx, 1);
       await this.writeTasksRaw(tasks);
       return true;
+    });
+  }
+
+  // -------------------------------------------------------------
+  // CLUB OPERATIONS (Feature 3 & 5)
+  // -------------------------------------------------------------
+
+  private getClubEvents(club: ClubItem, events: EventItem[]): EventItem[] {
+    const cName = club.name.toLowerCase();
+    const cat = club.category.toLowerCase();
+    return events.filter((e) => {
+      const eCat = (e.category || '').toLowerCase();
+      const eType = (e.type || '').toLowerCase();
+      const eTitle = (e.title || '').toLowerCase();
+      const eOrg = (e.organizer || '').toLowerCase();
+
+      if (club.id === 'club-coding') {
+        return (
+          eCat.includes('tech') ||
+          eType.includes('tech') ||
+          eCat.includes('hackathon') ||
+          eType.includes('hackathon') ||
+          eOrg.includes('gdsc') ||
+          eOrg.includes('web3')
+        );
+      }
+      if (club.id === 'club-cultural') {
+        return (
+          eCat.includes('cultural') ||
+          eType.includes('cultural') ||
+          eTitle.includes('fest') ||
+          eTitle.includes('garba')
+        );
+      }
+      if (club.id === 'club-dance') {
+        return eCat.includes('dance') || eType.includes('dance') || eTitle.includes('dance');
+      }
+      if (club.id === 'club-music') {
+        return eCat.includes('music') || eType.includes('music') || eTitle.includes('song') || eTitle.includes('concert');
+      }
+      if (club.id === 'club-sports') {
+        return (
+          eCat.includes('sports') ||
+          eType.includes('sports') ||
+          eTitle.includes('cricket') ||
+          eTitle.includes('football') ||
+          eTitle.includes('tournament')
+        );
+      }
+      if (club.id === 'club-photo') {
+        return eTitle.includes('photo') || eTitle.includes('camera') || eTitle.includes('lens');
+      }
+      if (club.id === 'club-ecell') {
+        return eCat.includes('career') || eType.includes('career') || eTitle.includes('fair') || eTitle.includes('startup');
+      }
+      return eCat.includes(cat) || eTitle.includes(cName);
+    });
+  }
+
+  async getAllClubs(studentId?: string): Promise<ClubItem[]> {
+    return withLock(async () => {
+      const [clubs, memberships] = await Promise.all([
+        this.readClubsRaw(),
+        this.readClubMembershipsRaw()
+      ]);
+
+      const effectiveStudentId = studentId ? studentId.trim() : undefined;
+
+      return clubs.map((club) => {
+        const clubMems = memberships.filter((m) => m.clubId === club.id);
+        const isJoined = effectiveStudentId
+          ? clubMems.some((m) => m.studentId.toLowerCase() === effectiveStudentId.toLowerCase())
+          : false;
+
+        return {
+          ...club,
+          memberCount: club.memberCount ? Math.max(club.memberCount, clubMems.length) : clubMems.length,
+          isJoined
+        };
+      });
+    });
+  }
+
+  async getClubById(id: string, studentId?: string): Promise<ClubItem | null> {
+    return withLock(async () => {
+      const [clubs, memberships, events, registrations] = await Promise.all([
+        this.readClubsRaw(),
+        this.readClubMembershipsRaw(),
+        this.readEventsRaw(),
+        this.readRegistrationsRaw()
+      ]);
+
+      const club = clubs.find((c) => c.id === id);
+      if (!club) return null;
+
+      const enrichedEvents = events.map((e) => this.enrichEventWithCounts(e, registrations));
+      const clubEvents = this.getClubEvents(club, enrichedEvents);
+      const clubMems = memberships.filter((m) => m.clubId === club.id);
+
+      const effectiveStudentId = studentId ? studentId.trim() : undefined;
+      const isJoined = effectiveStudentId
+        ? clubMems.some((m) => m.studentId.toLowerCase() === effectiveStudentId.toLowerCase())
+        : false;
+
+      return {
+        ...club,
+        memberCount: club.memberCount ? Math.max(club.memberCount, clubMems.length) : clubMems.length,
+        isJoined,
+        events: clubEvents
+      };
+    });
+  }
+
+  async joinClub(
+    clubId: string,
+    studentId: string,
+    studentName?: string
+  ): Promise<{ success: boolean; message: string; club: ClubItem; alreadyJoined?: boolean }> {
+    return withLock(async () => {
+      const [clubs, memberships] = await Promise.all([
+        this.readClubsRaw(),
+        this.readClubMembershipsRaw()
+      ]);
+
+      const clubIndex = clubs.findIndex((c) => c.id === clubId);
+      if (clubIndex === -1) {
+        throw new Error(`Club with id '${clubId}' not found`);
+      }
+
+      const existingMem = memberships.find(
+        (m) =>
+          m.clubId === clubId &&
+          m.studentId.toLowerCase().trim() === studentId.toLowerCase().trim()
+      );
+
+      if (existingMem) {
+        return {
+          success: true,
+          alreadyJoined: true,
+          message: `Already a member of ${clubs[clubIndex].name}.`,
+          club: { ...clubs[clubIndex], isJoined: true }
+        };
+      }
+
+      const newMembership: ClubMembership = {
+        id: `mem-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        clubId,
+        studentId: studentId.trim(),
+        studentName: studentName?.trim() || 'Alex Chen',
+        joinedAt: new Date().toISOString()
+      };
+
+      memberships.push(newMembership);
+      await this.writeClubMembershipsRaw(memberships);
+
+      clubs[clubIndex].memberCount = (clubs[clubIndex].memberCount || 0) + 1;
+      await this.writeClubsRaw(clubs);
+
+      return {
+        success: true,
+        message: `Successfully joined ${clubs[clubIndex].name}!`,
+        club: { ...clubs[clubIndex], isJoined: true }
+      };
+    });
+  }
+
+  async leaveClub(
+    clubId: string,
+    studentId: string
+  ): Promise<{ success: boolean; message: string; club: ClubItem }> {
+    return withLock(async () => {
+      const [clubs, memberships] = await Promise.all([
+        this.readClubsRaw(),
+        this.readClubMembershipsRaw()
+      ]);
+
+      const clubIndex = clubs.findIndex((c) => c.id === clubId);
+      if (clubIndex === -1) {
+        throw new Error(`Club with id '${clubId}' not found`);
+      }
+
+      const memIndex = memberships.findIndex(
+        (m) =>
+          m.clubId === clubId &&
+          m.studentId.toLowerCase().trim() === studentId.toLowerCase().trim()
+      );
+
+      if (memIndex !== -1) {
+        memberships.splice(memIndex, 1);
+        await this.writeClubMembershipsRaw(memberships);
+
+        clubs[clubIndex].memberCount = Math.max(0, (clubs[clubIndex].memberCount || 1) - 1);
+        await this.writeClubsRaw(clubs);
+      }
+
+      return {
+        success: true,
+        message: `Left ${clubs[clubIndex].name}.`,
+        club: { ...clubs[clubIndex], isJoined: false }
+      };
+    });
+  }
+
+  async getClubsForStudent(studentId: string): Promise<ClubItem[]> {
+    return withLock(async () => {
+      const [clubs, memberships, events, registrations] = await Promise.all([
+        this.readClubsRaw(),
+        this.readClubMembershipsRaw(),
+        this.readEventsRaw(),
+        this.readRegistrationsRaw()
+      ]);
+
+      const normId = studentId.toLowerCase().trim();
+      const studentClubIds = new Set(
+        memberships.filter((m) => m.studentId.toLowerCase().trim() === normId).map((m) => m.clubId)
+      );
+
+      const enrichedEvents = events.map((e) => this.enrichEventWithCounts(e, registrations));
+
+      return clubs
+        .filter((c) => studentClubIds.has(c.id))
+        .map((club) => {
+          const clubMems = memberships.filter((m) => m.clubId === club.id);
+          const clubEvents = this.getClubEvents(club, enrichedEvents);
+          return {
+            ...club,
+            memberCount: club.memberCount ? Math.max(club.memberCount, clubMems.length) : clubMems.length,
+            isJoined: true,
+            events: clubEvents
+          };
+        });
     });
   }
 }

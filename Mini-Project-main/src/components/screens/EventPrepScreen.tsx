@@ -13,6 +13,7 @@ import {
   Square,
   Layers,
   Sparkles,
+  Menu,
 } from 'lucide-react';
 
 interface EventPrepScreenProps {
@@ -21,6 +22,7 @@ interface EventPrepScreenProps {
   onToggleTask: (taskId: string) => void;
   onAddTask: (title: string, assignee: string, assigneeAvatar?: string) => void;
   onNavigate: (screen: ScreenId) => void;
+  onOpenMenu?: () => void;
   onShowToast: (message: string) => void;
 }
 
@@ -30,6 +32,7 @@ export const EventPrepScreen: React.FC<EventPrepScreenProps> = ({
   onToggleTask,
   onAddTask,
   onNavigate,
+  onOpenMenu,
   onShowToast,
 }) => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -67,6 +70,16 @@ export const EventPrepScreen: React.FC<EventPrepScreenProps> = ({
       {/* Top Header matching Image 3 */}
       <header className="px-5 py-3.5 flex items-center justify-between border-b border-[#1b2527] bg-[#091113]/90 sticky top-0 z-20 backdrop-blur-md">
         <div className="flex items-center gap-2">
+          {onOpenMenu && (
+            <button
+              type="button"
+              onClick={onOpenMenu}
+              className="p-1 rounded-lg bg-[#121c1e] border border-[#213235] text-zinc-300 hover:text-white hover:border-[#00f2ff]/50 transition-colors cursor-pointer mr-1"
+              title="Open Navigation Menu"
+            >
+              <Menu className="w-4 h-4 text-[#00f2ff]" />
+            </button>
+          )}
           <GatherlyLogo size="md" variant="cyan" />
         </div>
         <div className="flex items-center gap-2">

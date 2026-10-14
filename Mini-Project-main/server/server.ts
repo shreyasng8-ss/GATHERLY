@@ -5,6 +5,7 @@ import { eventsRouter } from './routes/events';
 import { studentsRouter } from './routes/students';
 import { ticketsRouter } from './routes/tickets';
 import { tasksRouter } from './routes/tasks';
+import { clubsRouter } from './routes/clubs';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
@@ -65,6 +66,7 @@ app.use('/api/events', eventsRouter);
 app.use('/api/students', studentsRouter);
 app.use('/api/tickets', ticketsRouter);
 app.use('/api/tasks', tasksRouter);
+app.use('/api/clubs', clubsRouter);
 
 // 404 Handler for unknown routes
 app.use((_req: Request, res: Response) => {
@@ -97,6 +99,7 @@ export async function startServer(port = PORT, host = HOST) {
       console.log(` Local:   http://localhost:${port}`);
       console.log(` Health:  http://localhost:${port}/api/health`);
       console.log(` Events:  http://localhost:${port}/api/events`);
+      console.log(` Clubs:   http://localhost:${port}/api/clubs`);
       console.log(` Tickets: http://localhost:${port}/api/tickets/:id/verify`);
       console.log(` Tasks:   http://localhost:${port}/api/tasks`);
       console.log(`===============================================`);

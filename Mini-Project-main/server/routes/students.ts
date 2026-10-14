@@ -28,3 +28,29 @@ studentsRouter.get('/:studentId/registrations', async (req: Request, res: Respon
     res.status(500).json({ error: 'Failed to retrieve student registrations' });
   }
 });
+
+// GET /api/students/:studentId/clubs - Return clubs joined by student
+studentsRouter.get('/:studentId/clubs', async (req: Request, res: Response) => {
+  try {
+    const studentId = String(req.params.studentId || '');
+
+    if (!studentId || studentId.trim().length === 0) {
+      res.status(400).json({
+        error: 'Validation failed',
+        message: 'studentId path parameter is required'
+      });
+      return;
+    }
+
+    const clubs = await storage.getClubsForStudent(studentId);
+
+    res.json({
+      studentId,
+      count: clubs.length,
+      clubs
+    });
+  } catch (error) {
+    console.error(`Error in GET /api/students/${req.params.studentId}/clubs:`, error);
+    res.status(500).json({ error: 'Failed to retrieve student clubs' });
+  }
+});

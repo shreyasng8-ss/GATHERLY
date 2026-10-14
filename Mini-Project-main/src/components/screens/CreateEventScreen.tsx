@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ScreenId, EventItem } from '../../types';
 import { GatherlyLogo } from '../GatherlyLogo';
-import { careerFairImg } from '../../data/mockData';
+import {
+  selectEventImage,
+  getMatchedTopicLabel,
+  FALLBACK_EVENT_IMAGE
+} from '../../utils/eventImageSelector';
 import {
   Menu,
   Bell,
@@ -16,10 +20,13 @@ import {
   Home,
   CalendarDays,
   User,
+  Image as ImageIcon,
+  RotateCcw
 } from 'lucide-react';
 
 interface CreateEventScreenProps {
   onNavigate: (screen: ScreenId) => void;
+  onOpenMenu?: () => void;
   onPublishEvent: (event: Partial<EventItem>) => void;
   onUpdateEvent?: (id: string, event: Partial<EventItem>) => void;
   onShowToast: (message: string) => void;
@@ -28,6 +35,7 @@ interface CreateEventScreenProps {
 
 export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
   onNavigate,
+  onOpenMenu,
   onPublishEvent,
   onUpdateEvent,
   onShowToast,
@@ -36,7 +44,7 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
   const isEditing = Boolean(eventToEdit);
   const [title, setTitle] = useState(eventToEdit?.title || 'Spring Career Fair 2024');
   const [eventType, setEventType] = useState<'Academic' | 'Tech Workshop' | 'Hackathon' | 'Career' | 'Cultural' | 'Sports'>(
-    (eventToEdit?.type as any) || 'Academic'
+    (eventToEdit?.type as any) || (eventToEdit?.category as any) || 'Academic'
   );
   const [venue, setVenue] = useState(eventToEdit?.venue || 'Student Union Hall');
   const [date, setDate] = useState(eventToEdit?.date || '2024-10-15');
@@ -52,6 +60,32 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
   const [regLink, setRegLink] = useState(
     eventToEdit?.registrationLink || 'https://gatherly.campus.edu/rsvp/springfair2024'
   );
+  // Custom image override state
+  const [customImageUrl, setCustomImageUrl] = useState(
+    eventToEdit?.image && eventToEdit.image !== FALLBACK_EVENT_IMAGE ? eventToEdit.image : ''
+  );
+
+  // Compute context-aware image automatically based on event metadata
+  const autoMatchedImage = useMemo(() => {
+    return selectEventImage({
+      title,
+      category: eventType,
+      type: eventType,
+      description
+    });
+  }, [title, eventType, description]);
+
+  const matchedTopicLabel = useMemo(() => {
+    return getMatchedTopicLabel({
+      title,
+      category: eventType,
+      type: eventType,
+      description
+    });
+  }, [title, eventType, description]);
+
+  // Effective image to display and save: custom input wins, otherwise intelligent match
+  const effectiveImage = customImageUrl.trim() ? customImageUrl.trim() : autoMatchedImage;
 
   const toggleYear = (yr: string) => {
     if (eligibleYears.includes(yr)) {
@@ -76,6 +110,7 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
         description,
         eligibleYears,
         registrationLink: regLink,
+        image: effectiveImage,
       });
       onShowToast(`Event "${title}" successfully updated!`);
     } else {
@@ -90,10 +125,10 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
         description,
         eligibleYears,
         registrationLink: regLink,
-        image: careerFairImg,
+        image: effectiveImage,
         status: 'Upcoming',
       });
-      onShowToast(`Event "${title}" published to campus community!`);
+      onShowToast(`Event "${title}" published with context image!`);
     }
 
     onNavigate('organizer');
@@ -101,12 +136,14 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
 
   return (
     <div className="min-h-full flex flex-col bg-[#080f10] text-[#dce4e4]">
-      {/* Top Header matching Image 9 */}
+      {/* Top Header */}
       <header className="px-5 py-3.5 flex items-center justify-between border-b border-[#1b2628] bg-[#091113]/90 sticky top-0 z-20 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => onNavigate('organizer')}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            onClick={() => onOpenMenu ? onOpenMenu() : onNavigate('organizer')}
+            className="p-1.5 rounded-xl text-zinc-400 hover:text-[#00f2ff] hover:bg-white/5 transition-colors cursor-pointer"
+            title="Open Menu"
+            aria-label="Open Navigation Menu"
           >
             <Menu className="w-5 h-5 text-[#00f2ff]" />
           </button>
@@ -114,7 +151,7 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
         </div>
 
         <button
-          onClick={() => onShowToast('Notifications panel opened.')}
+          onClick={() => onShowToast('Organizer event publishing panel active.')}
           className="p-2 rounded-lg text-zinc-300 hover:text-white transition-colors cursor-pointer"
         >
           <Bell className="w-4 h-4 text-[#00f2ff]" />
@@ -130,8 +167,8 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
           </h1>
           <p className="text-xs text-[#7d9294] mt-1">
             {isEditing
-              ? 'Update the event configuration and save changes.'
-              : 'Fill in the details to publish a new event to the campus community.'}
+              ? 'Update event configuration. Image automatically adapts to event context.'
+              : 'Fill in event details to publish. Gatherly automatically pairs your event with an appropriate image.'}
           </p>
         </div>
 
@@ -147,7 +184,7 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Spring Career Fair 2024"
+              placeholder="e.g., Garba Night 2024, Campus Hackathon, Cricket League"
               className="w-full px-3.5 py-2.5 text-sm bg-[#121c1e] border border-[#223438] rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[#00f2ff] focus:ring-1 focus:ring-[#00f2ff] transition-all"
             />
           </div>
@@ -155,7 +192,7 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
           {/* Event Type */}
           <div>
             <label className="block text-xs font-medium text-[#8ca0a3] mb-1">
-              Event Type
+              Event Type / Category
             </label>
             <div className="relative">
               <select
@@ -184,7 +221,7 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
               required
               value={venue}
               onChange={(e) => setVenue(e.target.value)}
-              placeholder="e.g., Student Union Hall"
+              placeholder="e.g., Student Union Hall, Main Ground"
               className="w-full px-3.5 py-2.5 text-sm bg-[#121c1e] border border-[#223438] rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[#00f2ff] focus:ring-1 focus:ring-[#00f2ff] transition-all"
             />
           </div>
@@ -249,9 +286,51 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide details about the event..."
+              placeholder="Provide details about the event activities, schedule, and guidelines..."
               className="w-full px-3.5 py-2.5 text-sm bg-[#121c1e] border border-[#223438] rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[#00f2ff] focus:ring-1 focus:ring-[#00f2ff] transition-all resize-none"
             />
+          </div>
+
+          {/* Context-Aware Image Selection Box (Feature 1) */}
+          <div className="p-3.5 rounded-2xl bg-[#111c1f] border border-[#1f3135] space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-[#00f2ff]" />
+                <span>Event Cover Image</span>
+              </label>
+
+              {/* Topic Match Pill */}
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-[#00f2ff]/10 text-[#00f2ff] border border-[#00f2ff]/30 flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                <span>Match: {matchedTopicLabel}</span>
+              </span>
+            </div>
+
+            <p className="text-[11px] text-zinc-400 leading-normal">
+              Gatherly automatically selects a relevant image based on your event title and category. You can also paste an explicit image URL below to override.
+            </p>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customImageUrl}
+                onChange={(e) => setCustomImageUrl(e.target.value)}
+                placeholder="Paste custom image URL (Optional, overrides auto-match)..."
+                className="flex-1 px-3 py-2 text-xs bg-[#0b1214] border border-[#223438] rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-[#00f2ff] font-mono"
+              />
+
+              {customImageUrl.trim() && (
+                <button
+                  type="button"
+                  onClick={() => setCustomImageUrl('')}
+                  title="Reset to Context Auto-Match"
+                  className="px-2.5 py-2 rounded-xl bg-[#182326] hover:bg-[#203135] text-zinc-300 hover:text-[#00f2ff] border border-[#25393d] text-xs transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline text-[11px]">Auto</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Eligible Years */}
@@ -294,26 +373,37 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
             />
           </div>
 
-          {/* Section: Student Preview matching Image 9 */}
+          {/* Section: Live Student Preview Card */}
           <div className="pt-3">
-            <h2 className="text-base font-bold text-white tracking-tight mb-3">
-              Student Preview
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                <span>Student Preview</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">
+                  Live Sync
+                </span>
+              </h2>
+              <span className="text-xs text-zinc-400 font-mono">
+                {customImageUrl.trim() ? 'Custom Image' : `Matched: ${matchedTopicLabel}`}
+              </span>
+            </div>
 
-            {/* Live Student Card */}
+            {/* Live Student Card with Context-Aware Image */}
             <div className="rounded-2xl bg-[#111a1c] border border-[#203134] overflow-hidden shadow-xl">
               <div className="relative h-44 w-full overflow-hidden">
                 <img
-                  src={careerFairImg}
+                  src={effectiveImage}
                   alt={title}
                   className="w-full h-full object-cover filter contrast-[1.05]"
+                  onError={(e) => {
+                    e.currentTarget.src = FALLBACK_EVENT_IMAGE;
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#111a1c] via-black/20 to-black/20" />
-                
+
                 <div className="absolute top-3 left-3">
                   <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-black/80 text-[#00f2ff] border border-[#00f2ff]/40 flex items-center gap-1.5 backdrop-blur-md">
                     <Briefcase className="w-3.5 h-3.5" />
-                    <span>Career</span>
+                    <span>{eventType}</span>
                   </span>
                 </div>
               </div>
@@ -326,7 +416,7 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
                 <div className="space-y-1.5 text-xs text-zinc-300">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-3.5 h-3.5 text-[#00f2ff]" />
-                    <span>Oct 15, 2024 • 10:00 AM</span>
+                    <span>{date} • {time}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3.5 h-3.5 text-[#00f2ff]" />
@@ -340,7 +430,7 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => onShowToast('RSVP successful in preview mode!')}
+                  onClick={() => onShowToast('RSVP registration preview active!')}
                   className="w-full py-2.5 px-4 rounded-xl bg-[#00f2ff] hover:bg-[#3bf5ff] text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_16px_rgba(0,242,255,0.4)] transition-all cursor-pointer mt-2"
                 >
                   Register Now
@@ -384,7 +474,7 @@ export const CreateEventScreen: React.FC<CreateEventScreenProps> = ({
           className="flex flex-col items-center gap-0.5 text-[#00f2ff] cursor-pointer"
         >
           <CalendarDays className="w-4 h-4" />
-          <span className="text-[10px] font-semibold">My Events</span>
+          <span className="text-[10px] font-semibold">Post Event</span>
         </button>
 
         <button

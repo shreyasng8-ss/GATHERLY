@@ -28,10 +28,13 @@ import { EventDetailsModal } from './components/modals/EventDetailsModal';
 import { EventRegistrationModal } from './components/modals/EventRegistrationModal';
 import { OrganizerScannerModal } from './components/modals/OrganizerScannerModal';
 import { TicketVerificationScreen } from './components/screens/TicketVerificationScreen';
+import { ClubsScreen } from './components/screens/ClubsScreen';
+import { NavigationDrawer } from './components/navigation/NavigationDrawer';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('login');
   const [viewMode, setViewMode] = useState<'frame' | 'responsive'>('frame');
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
 
   // Application State
   const [events, setEvents] = useState<EventItem[]>(initialEvents);
@@ -321,15 +324,41 @@ export default function App() {
     showToast('All notifications marked as read.');
   };
 
-  // Determine current active theme (Student screen uses Amber/Orange, all others Cyan)
-  const isStudentScreen = currentScreen === 'student';
+  // Scroll to relevant section when navigating to explore-events or my-registrations
+  useEffect(() => {
+    if (currentScreen === 'explore-events') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('discover-events');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    } else if (currentScreen === 'my-registrations') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('my-registrations');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [currentScreen]);
+
+  // Determine current active theme (Student & Clubs screens use Amber/Orange, all others Cyan)
+  const isStudentScreen =
+    currentScreen === 'student' ||
+    currentScreen === 'clubs' ||
+    currentScreen === 'my-registrations' ||
+    currentScreen === 'explore-events';
   const theme = isStudentScreen ? 'orange' : 'cyan';
 
   return (
     <div className="min-h-screen bg-[#070b0c] text-zinc-100 flex flex-col font-sans selection:bg-[#00f2ff]/30">
-      {/* Top Navigation Switcher Bar matching Image 13.png */}
+      {/* Top Navigation Switcher Bar with Central Hamburger Menu */}
       <TopNavSwitcher
         currentScreen={currentScreen}
+        onOpenMenu={() => setIsDrawerOpen(true)}
         onSelectScreen={(screen) => {
           if (screen !== 'create-event') setEditingEvent(null);
           if (screen === 'ticket-scanner') {
@@ -363,6 +392,7 @@ export default function App() {
                 setCurrentScreen(screen);
               }
             }}
+            onOpenMenu={() => setIsDrawerOpen(true)}
             onMarkAllRead={handleMarkAllRead}
             onSelectEvent={(evt) => {
               setEditingEvent(evt);
@@ -377,12 +407,15 @@ export default function App() {
           />
         )}
 
-        {currentScreen === 'student' && (
+        {(currentScreen === 'student' ||
+          currentScreen === 'explore-events' ||
+          currentScreen === 'my-registrations') && (
           <StudentDashboardScreen
             profile={studentProfile}
             events={events}
             notifications={studentNotifs}
             onNavigate={(screen) => setCurrentScreen(screen)}
+            onOpenMenu={() => setIsDrawerOpen(true)}
             onOpenTicket={handleOpenTicket}
             onSelectEventDetails={handleOpenDetails}
             onOpenRegistrationModal={handleOpenRegistrationModal}
@@ -392,12 +425,24 @@ export default function App() {
           />
         )}
 
+        {currentScreen === 'clubs' && (
+          <ClubsScreen
+            profile={studentProfile}
+            events={events}
+            onNavigate={(screen) => setCurrentScreen(screen)}
+            onOpenMenu={() => setIsDrawerOpen(true)}
+            onShowToast={showToast}
+            onSelectEventDetails={handleOpenDetails}
+          />
+        )}
+
         {currentScreen === 'create-event' && (
           <CreateEventScreen
             onNavigate={(screen) => {
               setEditingEvent(null);
               setCurrentScreen(screen);
             }}
+            onOpenMenu={() => setIsDrawerOpen(true)}
             onPublishEvent={handlePublishEvent}
             onUpdateEvent={handleUpdateEvent}
             eventToEdit={editingEvent}
@@ -412,6 +457,7 @@ export default function App() {
             onToggleTask={handleToggleTask}
             onAddTask={handleAddTask}
             onNavigate={(screen) => setCurrentScreen(screen)}
+            onOpenMenu={() => setIsDrawerOpen(true)}
             onShowToast={showToast}
           />
         )}
@@ -426,6 +472,7 @@ export default function App() {
         {currentScreen === 'settings' && (
           <SettingsScreen
             onNavigate={(screen) => setCurrentScreen(screen)}
+            onOpenMenu={() => setIsDrawerOpen(true)}
             onShowToast={showToast}
           />
         )}
@@ -438,6 +485,28 @@ export default function App() {
           />
         )}
       </DeviceFrame>
+
+      {/* Central Navigation Drawer */}
+      <NavigationDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        currentScreen={currentScreen}
+        onSelectScreen={(screen) => {
+          if (screen !== 'create-event') setEditingEvent(null);
+          if (screen === 'ticket-scanner') {
+            setIsScannerOpen(true);
+          } else {
+            setCurrentScreen(screen);
+          }
+        }}
+        studentName={studentProfile.name}
+        studentId={studentProfile.studentId}
+        onSignOut={() => {
+          showToast('Signed out of session.');
+          setCurrentScreen('login');
+        }}
+        onOpenScanner={() => setIsScannerOpen(true)}
+      />
 
       {/* Live Organizer QR & Attendance Scanner Modal */}
       <OrganizerScannerModal

@@ -7,7 +7,10 @@ export type ScreenId =
   | 'org-setup'
   | 'settings'
   | 'ticket-scanner'
-  | 'verify-ticket';
+  | 'verify-ticket'
+  | 'clubs'
+  | 'explore-events'
+  | 'my-registrations';
 
 export interface EventItem {
   id: string;
@@ -176,3 +179,24 @@ export interface CheckInResponse {
   error?: string;
 }
 
+export interface ClubItem {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  image: string;
+  memberCount: number;
+  leadName?: string;
+  meetingSchedule?: string;
+  tags?: string[];
+  isJoined?: boolean;
+  events?: EventItem[];
+}
+
+export interface ClubMembership {
+  id: string;
+  clubId: string;
+  studentId: string;
+  studentName?: string;
+  joinedAt: string;
+}

@@ -1,34 +1,40 @@
 import React, { useState } from 'react';
 import { ScreenId } from '../types';
 import { GatherlyLogo } from './GatherlyLogo';
-import { Smartphone, Monitor, RotateCcw, Download, Check } from 'lucide-react';
+import { Menu, Smartphone, Monitor, RotateCcw, Download, Check, Sparkles } from 'lucide-react';
 import { downloadProjectZip } from '../utils/exportProject';
 
 interface TopNavSwitcherProps {
   currentScreen: ScreenId;
-  onSelectScreen: (screen: ScreenId) => void;
+  onOpenMenu: () => void;
   viewMode: 'frame' | 'responsive';
   onToggleViewMode: (mode: 'frame' | 'responsive') => void;
   onResetData: () => void;
+  onSelectScreen?: (screen: ScreenId) => void;
 }
 
-const screens: { id: ScreenId; label: string; number: number }[] = [
-  { id: 'login', label: 'Login', number: 1 },
-  { id: 'organizer', label: 'Organizer Dash', number: 2 },
-  { id: 'student', label: 'Student Dash', number: 3 },
-  { id: 'create-event', label: 'Post Event', number: 4 },
-  { id: 'team-tasks', label: 'Team & Tasks', number: 5 },
-  { id: 'org-setup', label: 'Org Setup', number: 6 },
-  { id: 'settings', label: 'Settings', number: 7 },
-  { id: 'ticket-scanner', label: 'Gate Scanner', number: 8 },
-];
+const screenLabels: Record<ScreenId, string> = {
+  login: 'Sign In / Portal',
+  organizer: 'Organizer Dashboard',
+  student: 'Student Dashboard',
+  'create-event': 'Post Event',
+  'team-tasks': 'Team & Tasks',
+  'org-setup': 'Organization Setup',
+  settings: 'Profile & Settings',
+  'ticket-scanner': 'Gate Pass Scanner',
+  'verify-ticket': 'Ticket Verification',
+  clubs: 'Campus Clubs',
+  'explore-events': 'Explore Events',
+  'my-registrations': 'My Registrations'
+};
 
 export const TopNavSwitcher: React.FC<TopNavSwitcherProps> = ({
   currentScreen,
-  onSelectScreen,
+  onOpenMenu,
   viewMode,
   onToggleViewMode,
   onResetData,
+  onSelectScreen
 }) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -43,52 +49,48 @@ export const TopNavSwitcher: React.FC<TopNavSwitcherProps> = ({
     }
   };
 
+  const activeLabel = screenLabels[currentScreen] || 'Dashboard';
+
   return (
-    <header className="sticky top-0 z-50 bg-[#090e10]/95 backdrop-blur-md border-b border-[#00f2ff]/20 px-4 py-2.5 transition-all">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-        {/* Brand & Badge */}
+    <header className="sticky top-0 z-40 bg-[#070d0f]/95 backdrop-blur-md border-b border-[#00f2ff]/20 px-4 py-2.5 transition-all">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+        {/* Left: Hamburger Menu Trigger & Brand Logo */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => onSelectScreen('login')}
+            onClick={onOpenMenu}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#111c1f] hover:bg-[#1a2b30] text-[#00f2ff] border border-[#00f2ff]/40 shadow-[0_0_12px_rgba(0,242,255,0.25)] transition-all cursor-pointer font-medium text-xs group"
+            title="Open Main Navigation Menu"
+            aria-label="Open Navigation Menu"
+          >
+            <Menu className="w-4 h-4 stroke-[2.2] group-hover:scale-110 transition-transform" />
+            <span className="font-semibold tracking-wide">Menu</span>
+          </button>
+
+          <button
+            onClick={() => onSelectScreen ? onSelectScreen('student') : onOpenMenu()}
             className="flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer text-left"
           >
             <GatherlyLogo size="md" variant="cyan" />
-            <span className="hidden sm:inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full bg-[#00f2ff]/10 text-[#00f2ff] border border-[#00f2ff]/30">
-              All-in-One App
-            </span>
           </button>
+
+          {/* Active Screen Context Pill */}
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#121c1e] border border-[#203236] text-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00f2ff] animate-pulse" />
+            <span className="text-zinc-400 font-mono text-[11px]">Current:</span>
+            <span className="text-white font-medium">{activeLabel}</span>
+          </div>
         </div>
 
-        {/* Screen switcher tabs matching Image 13.png */}
-        <nav className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none max-w-full">
-          {screens.map((item) => {
-            const isActive = currentScreen === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onSelectScreen(item.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-                  isActive
-                    ? 'bg-[#00f2ff] text-[#061011] font-bold shadow-[0_0_14px_rgba(0,242,255,0.6)] scale-[1.02]'
-                    : 'bg-[#151f21] text-[#9eb2b5] hover:text-white hover:bg-[#1e2c2f] border border-[#233538]'
-                }`}
-              >
-                <span>{item.number}.</span>
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* View mode toggle, reset & download code */}
+        {/* Right: View Mode Switcher & Utilities */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-[#131b1d] p-0.5 rounded-lg border border-[#233336]">
+          {/* View mode toggle: Frame vs Responsive */}
+          <div className="flex items-center bg-[#11191b] p-0.5 rounded-xl border border-[#223336]">
             <button
               onClick={() => onToggleViewMode('frame')}
-              title="Mobile Device Mockup Frame"
-              className={`p-1.5 rounded text-xs flex items-center gap-1 transition-colors cursor-pointer ${
+              title="Mobile Device Mockup View"
+              className={`p-1.5 rounded-lg text-xs flex items-center gap-1 transition-colors cursor-pointer ${
                 viewMode === 'frame'
-                  ? 'bg-[#00f2ff] text-black font-semibold shadow-[0_0_8px_rgba(0,242,255,0.4)]'
+                  ? 'bg-[#00f2ff] text-black font-semibold shadow-[0_0_10px_rgba(0,242,255,0.4)]'
                   : 'text-[#849a9c] hover:text-white'
               }`}
             >
@@ -97,10 +99,10 @@ export const TopNavSwitcher: React.FC<TopNavSwitcherProps> = ({
             </button>
             <button
               onClick={() => onToggleViewMode('responsive')}
-              title="Responsive Wide Web View"
-              className={`p-1.5 rounded text-xs flex items-center gap-1 transition-colors cursor-pointer ${
+              title="Responsive Wide Desktop View"
+              className={`p-1.5 rounded-lg text-xs flex items-center gap-1 transition-colors cursor-pointer ${
                 viewMode === 'responsive'
-                  ? 'bg-[#00f2ff] text-black font-semibold shadow-[0_0_8px_rgba(0,242,255,0.4)]'
+                  ? 'bg-[#00f2ff] text-black font-semibold shadow-[0_0_10px_rgba(0,242,255,0.4)]'
                   : 'text-[#849a9c] hover:text-white'
               }`}
             >
@@ -109,12 +111,12 @@ export const TopNavSwitcher: React.FC<TopNavSwitcherProps> = ({
             </button>
           </div>
 
-          {/* Download code button */}
+          {/* Download Full Source Code */}
           <button
             onClick={handleDownload}
             disabled={isDownloading}
-            title="Download Full Website Code (.zip)"
-            className="px-2.5 py-1.5 rounded-lg bg-[#00f2ff]/15 hover:bg-[#00f2ff]/25 text-[#00f2ff] border border-[#00f2ff]/40 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(0,242,255,0.2)] cursor-pointer"
+            title="Download Full Project Source (.zip)"
+            className="px-2.5 py-1.5 rounded-xl bg-[#00f2ff]/15 hover:bg-[#00f2ff]/25 text-[#00f2ff] border border-[#00f2ff]/40 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(0,242,255,0.2)] cursor-pointer"
           >
             {isDownloading ? (
               <>
@@ -129,10 +131,11 @@ export const TopNavSwitcher: React.FC<TopNavSwitcherProps> = ({
             )}
           </button>
 
+          {/* Reset App Data */}
           <button
             onClick={onResetData}
             title="Reset Mock Data"
-            className="p-1.5 rounded-lg bg-[#131b1d] hover:bg-[#1f2b2e] text-[#849a9c] hover:text-white border border-[#233336] transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-[#11191b] hover:bg-[#1a272a] text-[#849a9c] hover:text-white border border-[#223336] transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>

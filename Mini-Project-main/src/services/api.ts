@@ -4,7 +4,8 @@ import {
   EventRegistrationPayload,
   TicketVerificationResponse,
   TaskItem,
-  CheckInResponse
+  CheckInResponse,
+  ClubItem
 } from '../types';
 
 /**
@@ -241,5 +242,54 @@ export const api = {
       method: 'DELETE',
     });
     return handleResponse<{ message: string; id: string }>(res);
+  },
+
+  // 11. Club Endpoints (Feature 3 & 5)
+  async getClubs(studentId?: string): Promise<ClubItem[]> {
+    const query = studentId ? `?studentId=${encodeURIComponent(studentId)}` : '';
+    const res = await safeFetch(`${API_BASE_URL}/clubs${query}`);
+    return handleResponse<ClubItem[]>(res);
+  },
+
+  async getClubById(id: string, studentId?: string): Promise<ClubItem> {
+    const query = studentId ? `?studentId=${encodeURIComponent(studentId)}` : '';
+    const res = await safeFetch(`${API_BASE_URL}/clubs/${encodeURIComponent(id)}${query}`);
+    return handleResponse<ClubItem>(res);
+  },
+
+  async joinClub(
+    clubId: string,
+    studentId: string,
+    studentName?: string
+  ): Promise<{ success: boolean; message: string; club: ClubItem; alreadyJoined?: boolean }> {
+    const res = await safeFetch(`${API_BASE_URL}/clubs/${encodeURIComponent(clubId)}/join`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ studentId, studentName }),
+    });
+    return handleResponse<{ success: boolean; message: string; club: ClubItem; alreadyJoined?: boolean }>(res);
+  },
+
+  async leaveClub(
+    clubId: string,
+    studentId: string
+  ): Promise<{ success: boolean; message: string; club: ClubItem }> {
+    const res = await safeFetch(`${API_BASE_URL}/clubs/${encodeURIComponent(clubId)}/leave`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ studentId }),
+    });
+    return handleResponse<{ success: boolean; message: string; club: ClubItem }>(res);
+  },
+
+  async getStudentClubs(
+    studentId: string
+  ): Promise<{ studentId: string; count: number; clubs: ClubItem[] }> {
+    const res = await safeFetch(`${API_BASE_URL}/students/${encodeURIComponent(studentId)}/clubs`);
+    return handleResponse<{ studentId: string; count: number; clubs: ClubItem[] }>(res);
   },
 };

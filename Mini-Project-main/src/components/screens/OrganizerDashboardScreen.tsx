@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScreenId, EventItem, NotificationItem } from '../../types';
 import { GatherlyLogo } from '../GatherlyLogo';
+import { FALLBACK_EVENT_IMAGE } from '../../utils/eventImageSelector';
 import {
   Menu,
   Bell,
@@ -26,6 +27,7 @@ interface OrganizerDashboardProps {
   events: EventItem[];
   notifications: NotificationItem[];
   onNavigate: (screen: ScreenId) => void;
+  onOpenMenu?: () => void;
   onMarkAllRead: () => void;
   onSelectEvent: (event: EventItem) => void;
   onShowToast: (message: string) => void;
@@ -37,6 +39,7 @@ export const OrganizerDashboardScreen: React.FC<OrganizerDashboardProps> = ({
   events,
   notifications,
   onNavigate,
+  onOpenMenu,
   onMarkAllRead,
   onSelectEvent,
   onShowToast,
@@ -52,8 +55,10 @@ export const OrganizerDashboardScreen: React.FC<OrganizerDashboardProps> = ({
       <header className="px-5 py-3.5 flex items-center justify-between border-b border-[#1b2628] bg-[#091113]/90 sticky top-0 z-20 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => onShowToast('Organizer navigation drawer opened.')}
+            onClick={() => onOpenMenu ? onOpenMenu() : onNavigate('student')}
             className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            title="Open Menu"
+            aria-label="Open Navigation Menu"
           >
             <Menu className="w-5 h-5 text-[#00f2ff]" />
           </button>
@@ -265,9 +270,12 @@ export const OrganizerDashboardScreen: React.FC<OrganizerDashboardProps> = ({
                 {/* Image Banner with Badge */}
                 <div className="relative h-36 w-full overflow-hidden">
                   <img
-                    src={item.image}
+                    src={item.image || FALLBACK_EVENT_IMAGE}
                     alt={item.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = FALLBACK_EVENT_IMAGE;
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111a1c] via-transparent to-black/30" />
                   

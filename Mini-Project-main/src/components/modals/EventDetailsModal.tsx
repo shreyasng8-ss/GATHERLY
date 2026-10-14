@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { EventItem } from '../../types';
+import { FALLBACK_EVENT_IMAGE } from '../../utils/eventImageSelector';
 import {
   X,
   Calendar,
@@ -77,12 +78,12 @@ export const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
           {/* Banner Image */}
           <div className="relative h-48 w-full overflow-hidden bg-zinc-900">
             <img
-              src={
-                event.image ||
-                'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80'
-              }
+              src={event.image || FALLBACK_EVENT_IMAGE}
               alt={event.title}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = FALLBACK_EVENT_IMAGE;
+              }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#121622] via-black/40 to-black/30" />
 

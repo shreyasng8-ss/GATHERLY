@@ -1,0 +1,16 @@
+[
+  {
+    "id": "mem-1",
+    "clubId": "club-coding",
+    "studentId": "#GTH-8821",
+    "studentName": "Alex Chen",
+    "joinedAt": "2024-09-15T10:00:00.000Z"
+  },
+  {
+    "id": "mem-2",
+    "clubId": "club-cultural",
+    "studentId": "#GTH-8821",
+    "studentName": "Alex Chen",
+    "joinedAt": "2024-09-20T14:30:00.000Z"
+  }
+]

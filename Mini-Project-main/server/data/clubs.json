@@ -1,0 +1,114 @@
+[
+  {
+    "id": "club-coding",
+    "name": "Coding Club",
+    "category": "Technology",
+    "description": "Hands-on coding sprints, competitive programming, open-source projects, and technical interview preparation.",
+    "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80",
+    "memberCount": 142,
+    "leadName": "Sarah Jenkins",
+    "meetingSchedule": "Wednesdays • 6:00 PM",
+    "tags": [
+      "Coding",
+      "WebDev",
+      "Python",
+      "OpenSource"
+    ]
+  },
+  {
+    "id": "club-cultural",
+    "name": "Cultural Club",
+    "category": "Cultural",
+    "description": "Celebrating campus diversity, traditional festivities, cultural nights, and festive celebrations throughout the academic year.",
+    "image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80",
+    "memberCount": 198,
+    "leadName": "Maya Patel",
+    "meetingSchedule": "Thursdays • 5:30 PM",
+    "tags": [
+      "Festivals",
+      "Heritage",
+      "Celebration",
+      "Traditions"
+    ]
+  },
+  {
+    "id": "club-dance",
+    "name": "Dance Society",
+    "category": "Performing Arts",
+    "description": "Expressive choreography, hip-hop, contemporary, and classical dance routines for university showcases and state competitions.",
+    "image": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80",
+    "memberCount": 86,
+    "leadName": "Elena Rostova",
+    "meetingSchedule": "Tuesdays & Fridays • 6:30 PM",
+    "tags": [
+      "Dance",
+      "Choreography",
+      "HipHop",
+      "Performance"
+    ]
+  },
+  {
+    "id": "club-music",
+    "name": "Music Club",
+    "category": "Music",
+    "description": "A vibrant collective of vocalists, instrumentalists, and music producers hosting jam sessions, acoustic nights, and concerts.",
+    "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80",
+    "memberCount": 115,
+    "leadName": "Marcus Vance",
+    "meetingSchedule": "Mondays • 6:00 PM",
+    "tags": [
+      "Acoustic",
+      "Vocals",
+      "Bands",
+      "JamSessions"
+    ]
+  },
+  {
+    "id": "club-sports",
+    "name": "Sports Club",
+    "category": "Athletics",
+    "description": "Organizing inter-college cricket, football, basketball leagues, campus fitness marathons, and sports meets.",
+    "image": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80",
+    "memberCount": 230,
+    "leadName": "Devin Taylor",
+    "meetingSchedule": "Saturdays • 8:00 AM",
+    "tags": [
+      "Cricket",
+      "Football",
+      "Basketball",
+      "Fitness"
+    ]
+  },
+  {
+    "id": "club-photo",
+    "name": "Photography Club",
+    "category": "Creative Arts",
+    "description": "Visual storytelling, photowalks, camera technique masterclasses, and campus event documentation.",
+    "image": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80",
+    "memberCount": 74,
+    "leadName": "Aiden Scott",
+    "meetingSchedule": "Bi-weekly Sundays • 10:00 AM",
+    "tags": [
+      "Photography",
+      "Photowalk",
+      "Camera",
+      "VisualArts"
+    ]
+  },
+  {
+    "id": "club-ecell",
+    "name": "Entrepreneurship Club",
+    "category": "Business",
+    "description": "Fostering student startup culture, venture pitch competitions, angel investor keynotes, and product incubation.",
+    "image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
+    "memberCount": 95,
+    "leadName": "Priya Das",
+    "meetingSchedule": "Fridays • 5:00 PM",
+    "tags": [
+      "Startups",
+      "Pitch",
+      "Networking",
+      "Venture"
+    ]
+  }
+]

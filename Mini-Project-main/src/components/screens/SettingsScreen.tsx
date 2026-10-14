@@ -12,15 +12,18 @@ import {
   Smartphone,
   LogOut,
   Check,
+  Menu,
 } from 'lucide-react';
 
 interface SettingsScreenProps {
   onNavigate: (screen: ScreenId) => void;
+  onOpenMenu?: () => void;
   onShowToast: (message: string) => void;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onNavigate,
+  onOpenMenu,
   onShowToast,
 }) => {
   const [pushNotifs, setPushNotifs] = useState(true);
@@ -35,14 +38,27 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   return (
     <div className="min-h-full flex flex-col bg-[#080d0e] text-[#dce4e4]">
       {/* Top Header matching Image 7 */}
-      <header className="px-5 py-3.5 flex items-center gap-3 border-b border-[#1b2628] bg-[#091113]/90 sticky top-0 z-20 backdrop-blur-md">
-        <button
-          onClick={() => onNavigate('organizer')}
-          className="p-1 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5 text-[#00f2ff]" />
-        </button>
-        <GatherlyLogo size="md" variant="cyan" />
+      <header className="px-5 py-3.5 flex items-center justify-between border-b border-[#1b2628] bg-[#091113]/90 sticky top-0 z-20 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => onNavigate('organizer')}
+            className="p-1 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            title="Back to Organizer"
+          >
+            <ArrowLeft className="w-5 h-5 text-[#00f2ff]" />
+          </button>
+          <GatherlyLogo size="md" variant="cyan" />
+        </div>
+        {onOpenMenu && (
+          <button
+            type="button"
+            onClick={onOpenMenu}
+            className="p-1.5 rounded-lg bg-[#121c1e] border border-[#213235] text-zinc-300 hover:text-white hover:border-[#00f2ff]/50 transition-colors cursor-pointer"
+            title="Open Navigation Menu"
+          >
+            <Menu className="w-4 h-4 text-[#00f2ff]" />
+          </button>
+        )}
       </header>
 
       {/* Main Content Area */}

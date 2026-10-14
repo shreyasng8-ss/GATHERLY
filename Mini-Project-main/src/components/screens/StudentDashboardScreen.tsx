@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ScreenId, EventItem, StudentProfile, NotificationItem } from '../../types';
 import { GatherlyLogo } from '../GatherlyLogo';
+import { FALLBACK_EVENT_IMAGE } from '../../utils/eventImageSelector';
 import {
+  Menu,
   Bell,
   LogOut,
   Calendar,
@@ -31,6 +33,7 @@ interface StudentDashboardProps {
   events: EventItem[];
   notifications: NotificationItem[];
   onNavigate: (screen: ScreenId) => void;
+  onOpenMenu?: () => void;
   onOpenTicket: (event: EventItem) => void;
   onSelectEventDetails: (event: EventItem) => void;
   onOpenRegistrationModal: (event: EventItem) => void;
@@ -45,6 +48,7 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
   events,
   notifications,
   onNavigate,
+  onOpenMenu,
   onOpenTicket,
   onSelectEventDetails,
   onOpenRegistrationModal,
@@ -80,7 +84,15 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
     <div className="min-h-full flex flex-col bg-[#0a0c10] text-[#dfe2ef]">
       {/* Top Header matching Image 16 */}
       <header className="px-5 py-3.5 flex items-center justify-between border-b border-[#231b14] bg-[#0f131c]/90 sticky top-0 z-20 backdrop-blur-md">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => onOpenMenu ? onOpenMenu() : onNavigate('organizer')}
+            className="p-1.5 rounded-xl text-zinc-400 hover:text-[#ff7a00] hover:bg-white/5 transition-colors cursor-pointer"
+            title="Open Menu"
+            aria-label="Open Navigation Menu"
+          >
+            <Menu className="w-5 h-5 text-[#ff7a00]" />
+          </button>
           <GatherlyLogo size="md" variant="orange" />
         </div>
 
@@ -211,32 +223,38 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
           </div>
 
           {/* Joined Clubs */}
-          <div className="p-3.5 rounded-xl bg-[#141824] border border-white/5 flex items-center justify-between">
+          <div
+            onClick={() => onNavigate('clubs')}
+            className="p-3.5 rounded-xl bg-[#141824] hover:bg-[#1a2030] border border-white/5 hover:border-[#ff7a00]/30 transition-all cursor-pointer flex items-center justify-between group"
+            title="Manage Campus Clubs"
+          >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-[#ff7a00]/15 text-[#ff7a00]">
+              <div className="p-2.5 rounded-xl bg-[#ff7a00]/15 text-[#ff7a00] group-hover:scale-105 transition-transform">
                 <Users className="w-5 h-5" />
               </div>
               <div>
                 <span className="text-[11px] uppercase tracking-wider text-zinc-400 font-mono block">
-                  Joined Clubs
+                  Campus Clubs & Societies
                 </span>
                 <span className="text-xl font-extrabold text-white">
-                  5 <span className="text-xs font-normal text-zinc-400">societies</span>
+                  My Clubs
                 </span>
               </div>
             </div>
             {/* Club badge icons */}
-            <div className="flex items-center -space-x-1.5">
-              <span className="w-6 h-6 rounded-full bg-zinc-800 text-[10px] flex items-center justify-center font-bold text-zinc-300 ring-2 ring-[#141824]">
-                {'< >'}
-              </span>
-              <span className="w-6 h-6 rounded-full bg-[#ff7a00] text-[10px] flex items-center justify-center font-bold text-black ring-2 ring-[#141824]">
-                AI
-              </span>
-              <span className="w-6 h-6 rounded-full bg-amber-700 text-[10px] flex items-center justify-center font-bold text-white ring-2 ring-[#141824]">
-                🤖
-              </span>
-              <span className="text-[11px] text-zinc-400 font-mono pl-2.5 font-bold">+2</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center -space-x-1.5">
+                <span className="w-6 h-6 rounded-full bg-zinc-800 text-[10px] flex items-center justify-center font-bold text-zinc-300 ring-2 ring-[#141824]">
+                  {'< >'}
+                </span>
+                <span className="w-6 h-6 rounded-full bg-[#ff7a00] text-[10px] flex items-center justify-center font-bold text-black ring-2 ring-[#141824]">
+                  AI
+                </span>
+                <span className="w-6 h-6 rounded-full bg-amber-700 text-[10px] flex items-center justify-center font-bold text-white ring-2 ring-[#141824]">
+                  🤖
+                </span>
+              </div>
+              <span className="text-xs text-[#ff7a00] font-bold group-hover:translate-x-1 transition-transform">→</span>
             </div>
           </div>
 
@@ -315,12 +333,12 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
                       className="relative h-40 w-full overflow-hidden cursor-pointer group"
                     >
                       <img
-                        src={
-                          evt.image ||
-                          'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80'
-                        }
+                        src={evt.image || FALLBACK_EVENT_IMAGE}
                         alt={evt.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.src = FALLBACK_EVENT_IMAGE;
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#141824] via-black/30 to-black/30" />
 
@@ -406,7 +424,7 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
         {/* ------------------------------------------------------------------ */}
         {/* DISCOVER CAMPUS EVENTS (Feature Requirement 1)                     */}
         {/* ------------------------------------------------------------------ */}
-        <section className="space-y-3 pt-2">
+        <section id="discover-events" className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Compass className="w-4 h-4 text-[#ff7a00]" />
@@ -471,12 +489,12 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
                       className="relative h-36 w-full overflow-hidden cursor-pointer group"
                     >
                       <img
-                        src={
-                          evt.image ||
-                          'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80'
-                        }
+                        src={evt.image || FALLBACK_EVENT_IMAGE}
                         alt={evt.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.src = FALLBACK_EVENT_IMAGE;
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#141824] via-black/20 to-black/30" />
 
@@ -649,7 +667,7 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
         </button>
 
         <button
-          onClick={() => onShowToast('Browsing 5 enrolled campus societies.')}
+          onClick={() => onNavigate('clubs')}
           className="flex flex-col items-center gap-0.5 text-zinc-400 hover:text-white cursor-pointer"
         >
           <Compass className="w-4 h-4" />
